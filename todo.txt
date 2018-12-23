@@ -1,6 +1,9 @@
-- make an entity for biter santa
-- a way to set his spawn, movement speed, landing and stop locations
+- make sparks on wheels landing
+- make tiny smoke puffs under the pulling biters when air borne
 - make a VTOL image for him and an end position to move to before disappearing
 
+
+- seperate out shadows so that when flying they are on the ground in the correct place, based on height
 - Make seperate entity/graphics for the biters to be able to run whne moving and for the spitter to be able to turn and shoot.
 - Change spitter to be HD graphics version from Derp. Also check the mask as it incorrectly bulks up the spitter in old way I did it.
+- make big smoke for the entry and exiting of santa

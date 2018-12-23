@@ -28,5 +28,29 @@ data:extend({
 		minimum_value = 100,
 		setting_type = "runtime-global",
 		order = "1004"
+	},
+
+
+	{
+		name = "santa-called-message",
+		type = "string-setting",
+		default_value = "Jingle Jingle Jingle",
+		setting_type = "runtime-global",
+		order = "2001"
+	},
+	{
+		name = "santa-arrived-message",
+		type = "string-setting",
+		default_value = "Santa has arrived for all the good and bad little boys and girls!",
+		setting_type = "runtime-global",
+		order = "2002"
+	},
+	{
+		name = "santa-message-color",
+		type = "string-setting",
+		allowed_values = {"White", "Green", "Red", "Black"},
+		default_value = "Green",
+		setting_type = "runtime-global",
+		order = "2003"
 	}
 })

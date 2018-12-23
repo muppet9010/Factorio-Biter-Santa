@@ -8,6 +8,7 @@
 
 
 local Santa = require("scripts/santa")
+local SantaManager = require("scripts/santa_manager")
 
 
 
@@ -32,6 +33,9 @@ local OnStartup = function()
 	CreateGlobals()
 	ReferenceGlobals()
 	RegisterCommands()
+	if game.forces["script"] == nil then
+		MOD.scriptForce = game.create_force("script")
+	end
 end
 
 local OnLoad = function()
@@ -40,7 +44,7 @@ local OnLoad = function()
 end
 
 local OnTick = function()
-	Santa.Manage()
+	SantaManager.OnTick()
 end
 
 
