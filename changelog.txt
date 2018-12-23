@@ -1,0 +1,3 @@
+0.1.0
+	Initial Release
+	Biter Santa activated on command with static entity graphics

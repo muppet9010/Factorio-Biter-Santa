@@ -1,0 +1,11 @@
+{
+    "name": "Biter_Santa",
+    "version": "0.1.0",
+    "title": "Biter Santa",
+    "author": "Muppet9010",
+    "contact": "",
+    "homepage": "",
+    "factorio_version": "0.16",
+    "dependencies": ["base >= 0.16"],
+    "description": "Adds a Biter Santa which is activated by command"
+}

@@ -1,0 +1,1 @@
+return {spawning = "spawning", arriving = "arriving", landing_air = "landing_air", landing_ground = "landing_ground", landed = "landed", taking_off_ground = "taking_off_ground", taking_off_air = "taking_off_air", departing = "departing", disappearing = "disappearing"}
