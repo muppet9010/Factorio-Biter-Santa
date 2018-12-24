@@ -61,15 +61,12 @@ end
 
 function SantaManager.LandingAir()
 	local santaGroup = MOD.SantaGroup
-	local touchdownDistanceTiles = santaGroup.altitudeChangeDistanceTiles / 2
-	local touchdownPosX = santaGroup.landedPos.x - touchdownDistanceTiles
-	local distanceToTouchdown = touchdownPosX - santaGroup.currentPos.x
-	local height = (santaGroup.flyingHeightTiles / touchdownDistanceTiles) * distanceToTouchdown
-	local speed = (santaGroup.tickMoveSpeed / santaGroup.altitudeChangeDistanceTiles) * distanceToTouchdown
-	speed = math.max(speed, (santaGroup.tickMoveSpeed*0.75))
-	height = math.max(height, 0)
+	local distanceToStopped = santaGroup.landedPos.x - santaGroup.currentPos.x
+	local speed = santaGroup.descentPattern[santaGroup.stateIteration].speed
+	local height = santaGroup.descentPattern[santaGroup.stateIteration].height
+	santaGroup.stateIteration = santaGroup.stateIteration + 1
 
-	if debug then Logging.Log("distanceToTouchdown: " .. distanceToTouchdown .. " - height: " .. height .. " - speed: " .. speed) end
+	if debug then Logging.Log("distanceToStopped: " .. distanceToStopped .. " - height: " .. height .. " - speed: " .. speed) end
 	santaGroup.currentPos = {
 		x = santaGroup.currentPos.x + speed,
 		y = santaGroup.currentPos.y
@@ -82,21 +79,18 @@ function SantaManager.LandingAir()
 	if height < 3 then
 		Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox))
 	end
-	if height == 0 then
+	if santaGroup.stateIteration > #santaGroup.descentPattern then
 		santaGroup.state = SantaStates.landing_ground
+		santaGroup.stateIteration = 1
 	end
 end
 
 function SantaManager.LandingGround()
 	local santaGroup = MOD.SantaGroup
-	local distanceToStoped = santaGroup.landedPos.x - santaGroup.currentPos.x
-	local speed = (santaGroup.tickMoveSpeed / santaGroup.altitudeChangeDistanceTiles) * distanceToStoped
-	speed = math.max(speed, 0.03)
-	if distanceToStoped < speed then
-		speed = distanceToStoped
-	end
-
-	if debug then Logging.Log("distanceToStoped: " .. distanceToStoped .. " - speed: " .. speed) end
+	local distanceToStopped = santaGroup.landedPos.x - santaGroup.currentPos.x
+	local speed = santaGroup.groundSlowdownPattern[santaGroup.stateIteration]
+	santaGroup.stateIteration = santaGroup.stateIteration + 1
+	if debug then Logging.Log("distanceToStopped: " .. distanceToStopped .. " - speed: " .. speed) end
 	santaGroup.currentPos = {
 		x = santaGroup.currentPos.x + speed,
 		y = santaGroup.currentPos.y
@@ -104,8 +98,9 @@ function SantaManager.LandingGround()
 	local santaEntityPos = santaGroup.currentPos
 	santaGroup.santaEntity.teleport(santaEntityPos)
 	Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox))
-	if santaGroup.currentPos.x == santaGroup.landedPos.x then
+	if santaGroup.stateIteration > #santaGroup.groundSlowdownPattern then
 		santaGroup.state = SantaStates.landed
+		santaGroup.stateIteration = 1
 		Santa.SpawnSantaEntity(santaGroup.landedPos)
 		local messageText = settings.global["santa-arrived-message"].value
 		if messageText ~= nil and messageText ~= "" then

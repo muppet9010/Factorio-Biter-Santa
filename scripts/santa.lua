@@ -1,6 +1,7 @@
 local Santa = {}
 local SantaStates = require("scripts/santa_state")
 local Logging = require("scripts/logging")
+local Utils = require("scripts/utils")
 local debug = false
 
 function Santa.CallSantaCommand(commandDetails)
@@ -15,23 +16,31 @@ end
 
 function Santa.CreateSantaGroup()
 	local tickMoveSpeed = 0.4
-	local altitudeChangeDistanceTiles = 60
+	local descendSpeedReducton = 0.25
+	local altitudeChangeDistanceTiles = 40
 	local flyingHeightTiles = 6
 	local landedPos = {
 		x = tonumber(settings.global["santa-landed-spot-x"].value),
 		y = tonumber(settings.global["santa-landed-spot-y"].value)
 	}
+
+	local groundSlowdownStartingSpeed = tickMoveSpeed - (tickMoveSpeed * descendSpeedReducton)
+	local descentPattern = Santa.CalculateDescentPattern(tickMoveSpeed, groundSlowdownStartingSpeed, altitudeChangeDistanceTiles, flyingHeightTiles)
+	local groundSlowdownPattern = Santa.CalculateGroundSlowdownPattern(groundSlowdownStartingSpeed)
+	local landingDistance = Santa.CalculateLandingDistance(descentPattern, groundSlowdownPattern)
+
 	local landingStartPos = {
-		x = landedPos.x - altitudeChangeDistanceTiles,
+		x = landedPos.x - landingDistance,
 		y = landedPos.y
 	}
 	local takeOffEndPos = {
 		x = landedPos.x + altitudeChangeDistanceTiles,
 		y = landedPos.y
 	}
+	local spawnTilesLeft = math.floor(tonumber(settings.global["santa-spawn-tiles-left"].value) / tickMoveSpeed) * tickMoveSpeed
 	local spawnPos = {
-		x = landedPos.x - tonumber(settings.global["santa-spawn-tiles-left"].value),
-		y = landedPos.y
+		x = landingStartPos.x - spawnTilesLeft,
+		y = landingStartPos.y
 	}
 	local disappearPos = {
 		x = landedPos.x + tonumber(settings.global["santa-disappear-tiles-right"].value),
@@ -52,9 +61,13 @@ function Santa.CreateSantaGroup()
 		tickMoveSpeed = tickMoveSpeed,
 		altitudeChangeDistanceTiles = altitudeChangeDistanceTiles,
 		flyingHeightTiles = flyingHeightTiles,
-		collisionBox = game.entity_prototypes["biter-santa-landed"].collision_box
+		collisionBox = game.entity_prototypes["biter-santa-landed"].collision_box,
+		descendSpeedReducton = descendSpeedReducton,
+		descentPattern = descentPattern,
+		groundSlowdownPattern = groundSlowdownPattern,
+		stateIteration = 1
     }
-    if debug then Logging.Log("Santa Created") end
+    if debug then Logging.LogPrint("Santa Created") end
 end
 
 function Santa.SpawnSantaEntity(creationPos)
@@ -92,6 +105,66 @@ function Santa.DeleteSantaCommand(commandDetails)
 	if MOD.SantaGroup == nil then return end
 	Santa.RemoveSantaEntity()
 	MOD.SantaGroup = nil
+end
+
+function Santa.CalculateDescentPattern(tickMoveSpeed, endingSpeed, altitudeChangeDistanceTiles, flyingHeightTiles)
+	local averageSpeed = tickMoveSpeed - ((tickMoveSpeed - endingSpeed) / 2)
+	local numberOfFrames = math.floor(altitudeChangeDistanceTiles / averageSpeed)
+
+	local range = 30
+	local jumpSize = range / (numberOfFrames + 1)
+	local samplePoints = {}
+	for i=1, (numberOfFrames + 1) do
+		samplePoints[i] = (i * jumpSize) - (range/2)
+	end
+
+	local heightSpreader = 0.2
+	local heightValue = flyingHeightTiles + heightSpreader
+	local currentSpeed = tickMoveSpeed
+	local speedDecrease = (tickMoveSpeed - endingSpeed) / numberOfFrames
+	local steepness = 0.3
+	local descentPattern = {}
+	for i, sp in pairs(samplePoints) do
+		currentSpeed = currentSpeed - speedDecrease
+		local currentHeight = Utils.LogisticEquation(sp, heightValue, steepness) - 0.1
+		if currentHeight < flyingHeightTiles and currentHeight > 0 then
+			table.insert(descentPattern, {
+				speed = currentSpeed,
+				height = currentHeight
+			})
+		end
+	end
+	Logging.Log(Logging.TableContentsToString(descentPattern, "descentPattern"))
+
+	return descentPattern
+end
+
+function Santa.CalculateGroundSlowdownPattern(startingSpeed)
+	local slowdownPattern = {}
+	local slowdownPercentPerSecond = 0.75
+	local slowdownPercentPerTick = slowdownPercentPerSecond / 60
+	local currentSpeed = startingSpeed
+	while currentSpeed > 0.02 do
+		currentSpeed = currentSpeed - (currentSpeed * slowdownPercentPerTick)
+		table.insert(slowdownPattern, currentSpeed)
+	end
+	return slowdownPattern
+end
+
+function Santa.CalculateLandingDistance(descentPattern, groundSlowdownPattern)
+	local descentDistance = 0
+	for k, data in pairs(descentPattern) do
+		descentDistance = descentDistance + data.speed
+	end
+	if debug then Logging.LogPrint("descentDistance: " .. descentDistance) end
+	local stoppingDistance = 0
+	for k, speed in pairs(groundSlowdownPattern) do
+		stoppingDistance = stoppingDistance + speed
+	end
+	if debug then Logging.LogPrint("stoppingDistance: " .. stoppingDistance) end
+	local landingDistance = descentDistance + stoppingDistance
+	if debug then Logging.LogPrint("landingDistance: " .. landingDistance) end
+	return landingDistance
 end
 
 return Santa

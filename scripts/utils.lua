@@ -23,4 +23,8 @@ function Utils.ApplyBoundingBoxToPosition(centrePos, boundingBox)
     }
 end
 
+function Utils.LogisticEquation(index, height, steepness)
+    return height / (1 + math.exp(steepness * (index - 0)))
+end
+
 return Utils
