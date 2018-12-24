@@ -17,8 +17,8 @@ end
 function Santa.CreateSantaGroup()
 	local tickMoveSpeed = 0.4
 	local descendSpeedReducton = 0.25
-	local altitudeChangeDistanceTiles = 40
-	local flyingHeightTiles = 6
+	local altitudeChangeDistanceTiles = 80
+	local flyingHeightTiles = 10
 	local landedPos = {
 		x = tonumber(settings.global["santa-landed-spot-x"].value),
 		y = tonumber(settings.global["santa-landed-spot-y"].value)
@@ -144,7 +144,7 @@ function Santa.CalculateGroundSlowdownPattern(startingSpeed)
 	local slowdownPercentPerSecond = 0.75
 	local slowdownPercentPerTick = slowdownPercentPerSecond / 60
 	local currentSpeed = startingSpeed
-	while currentSpeed > 0.02 do
+	while currentSpeed > 0.01 do
 		currentSpeed = currentSpeed - (currentSpeed * slowdownPercentPerTick)
 		table.insert(slowdownPattern, currentSpeed)
 	end
