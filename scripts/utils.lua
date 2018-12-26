@@ -41,4 +41,29 @@ function Utils.RoundNumberToDecimalPlaces(num, numDecimalPlaces)
 	return result
 end
 
+--This doesn't guarentee correct on some of the edge cases, but is as close as possible assuming that 1/256 is the variance for the same number (Bilka, Dev on Discord)
+function Utils.FuzzyCompareDoubles(logic, num1, num2)
+    local numDif = num1 - num2
+    local variance = 1/256
+    if logic == "=" then
+        if numDif < variance and numDif > -variance then return true
+        else return false end
+    elseif logic == "!=" then
+        if numDif < variance and numDif > -variance then return false
+        else return true end
+    elseif logic == ">" then
+        if numDif > variance then return true
+        else return false end
+    elseif logic == ">=" then
+        if numDif > -variance then return true
+        else return false end
+    elseif logic == "<" then
+        if numDif < -variance then return true
+        else return false end
+    elseif logic == "<=" then
+        if numDif < variance then return true
+        else return false end
+    end
+end
+
 return Utils

@@ -5,11 +5,13 @@ Adds a biter santa that can be called in by command, will land and then dismisse
 Features
 -------
 
-Santa sleigh being pulled by biters. Made from ingame assets so fits in base game graphically.
+A flying Santa sleigh being pulled by biters. Made from ingame assets so fits in base game graphically.
+
+Configurable landing position and start position
 
 Configurable santa status messages.
 
-Santa will detroy any buildings in his landing or takeoff path. Damage is done via a new "script" force to avoid any unintended consequences from other mods.
+Santa will take 60 tiles to finish landing and stopping. It will detroy any buildings in its landing or takeoff path.
 
 
 

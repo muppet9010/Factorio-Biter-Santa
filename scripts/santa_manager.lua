@@ -58,8 +58,7 @@ function SantaManager.Arriving()
 	}
 	santaGroup.santaEntity.teleport(santaEntityPos)
 	if debug then Logging.Log(santaGroup.currentPos.x .. " >= " .. santaGroup.landingStartPos.x) end
-	--add a tiny number as in some cases LUA is saying this is false: -103.0113 >= -103.0113
-	if santaGroup.currentPos.x >= santaGroup.landingStartPos.x - 0.000000001 then
+	if Utils.FuzzyCompareDoubles(">=", santaGroup.currentPos.x, santaGroup.landingStartPos.x) then
 		santaGroup.state = SantaStates.landing_air
 	end
 end
