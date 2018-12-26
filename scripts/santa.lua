@@ -5,11 +5,13 @@ local Utils = require("scripts/utils")
 local debug = false
 
 function Santa.CallSantaCommand(commandDetails)
-	if MOD.SantaGroup ~= nil then
-		game.players[commandDetails.player_index].print("Santa is already on the map and there is only 1 of him!")
-		return
+	if commandDetails ~= nil then
+		if MOD.SantaGroup ~= nil then
+			game.players[commandDetails.player_index].print("Santa is already on the map and there is only 1 of him!")
+			return
+		end
+		game.players[commandDetails.player_index].print("Santa called")
 	end
-	game.players[commandDetails.player_index].print("Santa called")
 
 	Santa.CreateSantaGroup()
 end
@@ -66,8 +68,8 @@ function Santa.CreateSantaGroup()
 		descentPattern = descentPattern,
 		groundSlowdownPattern = groundSlowdownPattern,
 		stateIteration = 1
-    }
-    if debug then Logging.LogPrint("Santa Created") end
+	}
+    if debug then Logging.LogPrint("Santa Created: " .. Logging.TableContentsToString(MOD.SantaGroup, "MOD.SantaGroup")) end
 end
 
 function Santa.SpawnSantaEntity(creationPos)
@@ -96,12 +98,16 @@ function Santa.RemoveSantaEntity()
 end
 
 function Santa.DismissSantaCommand(commandDetails)
-	game.players[commandDetails.player_index].print("Santa dismissed")
+	if commandDetails ~= nil then
+		game.players[commandDetails.player_index].print("Santa dismissed")
+	end
 	--TODO
 end
 
 function Santa.DeleteSantaCommand(commandDetails)
-	game.players[commandDetails.player_index].print("Santa deleted")
+	if commandDetails ~= nil then
+		game.players[commandDetails.player_index].print("Santa deleted")
+	end
 	if MOD.SantaGroup == nil then return end
 	Santa.RemoveSantaEntity()
 	MOD.SantaGroup = nil
@@ -134,7 +140,6 @@ function Santa.CalculateDescentPattern(tickMoveSpeed, endingSpeed, altitudeChang
 			})
 		end
 	end
-	Logging.Log(Logging.TableContentsToString(descentPattern, "descentPattern"))
 
 	return descentPattern
 end
@@ -165,6 +170,11 @@ function Santa.CalculateLandingDistance(descentPattern, groundSlowdownPattern)
 	local landingDistance = descentDistance + stoppingDistance
 	if debug then Logging.LogPrint("landingDistance: " .. landingDistance) end
 	return landingDistance
+end
+
+function Santa.NotValidEntityOccured()
+	game.print("Critical Error - Santa Entity Invalid")
+	Santa.DeleteSantaCommand()
 end
 
 return Santa

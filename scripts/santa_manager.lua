@@ -45,6 +45,9 @@ end
 
 function SantaManager.Arriving()
 	local santaGroup = MOD.SantaGroup
+	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+		return Santa.NotValidEntityOccured()
+	end
 	santaGroup.currentPos = {
 		x = santaGroup.currentPos.x + santaGroup.tickMoveSpeed,
 		y = santaGroup.currentPos.y
@@ -54,13 +57,18 @@ function SantaManager.Arriving()
 		y = santaGroup.currentPos.y - santaGroup.flyingHeightTiles
 	}
 	santaGroup.santaEntity.teleport(santaEntityPos)
-	if santaGroup.currentPos.x >= santaGroup.landingStartPos.x then
+	if debug then Logging.Log(santaGroup.currentPos.x .. " >= " .. santaGroup.landingStartPos.x) end
+	--add a tiny number as in some cases LUA is saying this is false: -103.0113 >= -103.0113
+	if santaGroup.currentPos.x >= santaGroup.landingStartPos.x - 0.000000001 then
 		santaGroup.state = SantaStates.landing_air
 	end
 end
 
 function SantaManager.LandingAir()
 	local santaGroup = MOD.SantaGroup
+	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+		return Santa.NotValidEntityOccured()
+	end
 	local distanceToStopped = santaGroup.landedPos.x - santaGroup.currentPos.x
 	local speed = santaGroup.descentPattern[santaGroup.stateIteration].speed
 	local height = santaGroup.descentPattern[santaGroup.stateIteration].height
@@ -76,8 +84,8 @@ function SantaManager.LandingAir()
 		y = santaGroup.currentPos.y - height
 	}
 	santaGroup.santaEntity.teleport(santaEntityPos)
-	if height < 3 then
-		Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox))
+	if height < 2.5 then
+		Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity)
 	end
 	if santaGroup.stateIteration > #santaGroup.descentPattern then
 		santaGroup.state = SantaStates.landing_ground
@@ -87,6 +95,9 @@ end
 
 function SantaManager.LandingGround()
 	local santaGroup = MOD.SantaGroup
+	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+		return Santa.NotValidEntityOccured()
+	end
 	local distanceToStopped = santaGroup.landedPos.x - santaGroup.currentPos.x
 	local speed = santaGroup.groundSlowdownPattern[santaGroup.stateIteration]
 	santaGroup.stateIteration = santaGroup.stateIteration + 1
@@ -97,7 +108,7 @@ function SantaManager.LandingGround()
 	}
 	local santaEntityPos = santaGroup.currentPos
 	santaGroup.santaEntity.teleport(santaEntityPos)
-	Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox))
+	Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity)
 	if santaGroup.stateIteration > #santaGroup.groundSlowdownPattern then
 		santaGroup.state = SantaStates.landed
 		santaGroup.stateIteration = 1
@@ -110,21 +121,45 @@ function SantaManager.LandingGround()
 end
 
 function SantaManager.Landed()
+	local santaGroup = MOD.SantaGroup
+	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+		return Santa.NotValidEntityOccured()
+	end
 end
 
 function SantaManager.VTO()
+	local santaGroup = MOD.SantaGroup
+	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+		return Santa.NotValidEntityOccured()
+	end
 end
 
 function SantaManager.TakingOffGround()
+	local santaGroup = MOD.SantaGroup
+	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+		return Santa.NotValidEntityOccured()
+	end
 end
 
 function SantaManager.TakingOffAir()
+	local santaGroup = MOD.SantaGroup
+	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+		return Santa.NotValidEntityOccured()
+	end
 end
 
 function SantaManager.Departing()
+	local santaGroup = MOD.SantaGroup
+	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+		return Santa.NotValidEntityOccured()
+	end
 end
 
 function SantaManager.Disappearing()
+	local santaGroup = MOD.SantaGroup
+	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+		return Santa.NotValidEntityOccured()
+	end
 end
 
 return SantaManager

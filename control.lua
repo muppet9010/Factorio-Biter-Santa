@@ -33,9 +33,6 @@ local OnStartup = function()
 	CreateGlobals()
 	ReferenceGlobals()
 	RegisterCommands()
-	if game.forces["script"] == nil then
-		MOD.scriptForce = game.create_force("script")
-	end
 end
 
 local OnLoad = function()
