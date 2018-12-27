@@ -177,4 +177,62 @@ function Santa.NotValidEntityOccured()
 	Santa.DeleteSantaCommand()
 end
 
+function Santa.CreateWheelSparks(santaEntityPosition)
+	local santaGroup = MOD.SantaGroup
+	local wheelGroundSpots = {
+		{
+			x = santaEntityPosition.x - 0.9,
+			y = santaEntityPosition.y + 0.9
+		},
+		{
+			x = santaEntityPosition.x - 2,
+			y = santaEntityPosition.y + 0.9
+		},
+		{
+			x = santaEntityPosition.x - 5,
+			y = santaEntityPosition.y + 0.9
+		},
+		{
+			x = santaEntityPosition.x - 6.1,
+			y = santaEntityPosition.y + 0.9
+		}
+	}
+	for k, pos in pairs(wheelGroundSpots) do
+		santaGroup.surface.create_trivial_smoke{name = "santa-wheel-sparks", position = pos}
+	end
+end
+
+function Santa.CreateFlyingBiterSmoke(santaEntityPosition)
+	local santaGroup = MOD.SantaGroup
+	local topBiterRowYPos = santaEntityPosition.y + 0.2
+	local bottomBiterRowYPos = santaEntityPosition.y + 0.9
+	local biterSmokeSpotsXPos = {
+		santaEntityPosition.x + 6.5,
+		santaEntityPosition.x + 5.7,
+		santaEntityPosition.x + 4.7,
+		santaEntityPosition.x + 3.9,
+		santaEntityPosition.x + 3,
+		santaEntityPosition.x + 2.2,
+		santaEntityPosition.x + 1.1,
+		santaEntityPosition.x + 0.3,
+	}
+	for k, xPos in pairs(biterSmokeSpotsXPos) do
+		santaGroup.surface.create_trivial_smoke{name = "santa-biter-air-smoke", position = {x = xPos, y = topBiterRowYPos}}
+		santaGroup.surface.create_trivial_smoke{name = "santa-biter-air-smoke", position = {x = xPos, y = bottomBiterRowYPos}}
+	end
+
+	local topWheelRowYPos = santaEntityPosition.y + 0
+	local bottomWheelRowYPos = santaEntityPosition.y + 1.1
+	local wheelSmokeSpotsXPos = {
+		santaEntityPosition.x - 0.9,
+		santaEntityPosition.x - 2,
+		santaEntityPosition.x - 5,
+		santaEntityPosition.x - 6.1
+	}
+	for k, xPos in pairs(wheelSmokeSpotsXPos) do
+		santaGroup.surface.create_trivial_smoke{name = "santa-biter-air-smoke", position = {x = xPos, y = topWheelRowYPos}}
+		santaGroup.surface.create_trivial_smoke{name = "santa-biter-air-smoke", position = {x = xPos, y = bottomWheelRowYPos}}
+	end
+end
+
 return Santa

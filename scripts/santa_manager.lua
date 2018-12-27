@@ -57,6 +57,7 @@ function SantaManager.Arriving()
 		y = santaGroup.currentPos.y - santaGroup.flyingHeightTiles
 	}
 	santaGroup.santaEntity.teleport(santaEntityPos)
+	Santa.CreateFlyingBiterSmoke(santaEntityPos)
 	if debug then Logging.Log(santaGroup.currentPos.x .. " >= " .. santaGroup.landingStartPos.x) end
 	if Utils.FuzzyCompareDoubles(">=", santaGroup.currentPos.x, santaGroup.landingStartPos.x) then
 		santaGroup.state = SantaStates.landing_air
@@ -83,6 +84,9 @@ function SantaManager.LandingAir()
 		y = santaGroup.currentPos.y - height
 	}
 	santaGroup.santaEntity.teleport(santaEntityPos)
+	--if height > 1 then
+		Santa.CreateFlyingBiterSmoke(santaEntityPos)
+	--end
 	if height < 2.5 then
 		Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity)
 	end
@@ -108,6 +112,9 @@ function SantaManager.LandingGround()
 	local santaEntityPos = santaGroup.currentPos
 	santaGroup.santaEntity.teleport(santaEntityPos)
 	Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity)
+	if speed > 0.05 then
+		Santa.CreateWheelSparks(santaEntityPos)
+	end
 	if santaGroup.stateIteration > #santaGroup.groundSlowdownPattern then
 		santaGroup.state = SantaStates.landed
 		santaGroup.stateIteration = 1

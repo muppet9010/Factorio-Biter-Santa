@@ -11,7 +11,7 @@ Configurable landing position and start position
 
 Configurable santa status messages.
 
-Santa will take 60 tiles to finish landing and stopping. It will detroy any buildings in its landing or takeoff path.
+Santa will take 60 tiles to finish landing and stopping. It will detroy any buildings in its landing path.
 
 
 
