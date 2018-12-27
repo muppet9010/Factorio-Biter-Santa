@@ -23,7 +23,23 @@ local santaFlying = table.deepcopy(santaLanded)
 santaFlying.name = "biter-santa-flying"
 santaFlying.render_layer = "air-object"
 santaFlying.collision_mask = {}
-data:extend({santaLanded, santaFlying})
+local santaShadow = {
+	type = "simple-entity",
+	name = "biter-santa-shadow",
+	picture = {
+		filename = Constants.GraphicsModName .. "/graphics/entity/biter santa wagon - giant spitter-shadow.png",
+		height = "266",
+		width = "954",
+		scale = 0.5,
+		shift = {0.1, -0.75},
+		priority = "extra-high",
+		draw_as_shadow = true
+	},
+	flags = {"not-rotatable", "placeable-off-grid", "not-blueprintable", "not-deconstructable", "not-flammable", "not-on-map"},
+	render_layer = "smoke",
+	selectable_in_game = false,
+}
+data:extend({santaLanded, santaFlying, santaShadow})
 
 data:extend({
 	{
@@ -42,6 +58,7 @@ data:extend({
 		duration = 24,
 		affected_by_wind = false,
 		show_when_smoke_off = true,
+		movement_slow_down_factor = 1,
 		render_layer = "air-entity-info-icon"
 	},
 	{
@@ -61,6 +78,7 @@ data:extend({
 		duration = 20,
 		affected_by_wind = false,
 		show_when_smoke_off = true,
+		movement_slow_down_factor = 1,
 		render_layer = "smoke"
 	}
 })

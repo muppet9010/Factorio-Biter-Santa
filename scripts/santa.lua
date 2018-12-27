@@ -39,7 +39,7 @@ function Santa.CreateSantaGroup()
 		x = landedPos.x + altitudeChangeDistanceTiles,
 		y = landedPos.y
 	}
-	local spawnTilesLeft = math.floor(tonumber(settings.global["santa-spawn-tiles-left"].value) / tickMoveSpeed) * tickMoveSpeed
+	local spawnTilesLeft = math.floor((tonumber(settings.global["santa-spawn-tiles-left"].value) - landingDistance) / tickMoveSpeed) * tickMoveSpeed
 	local spawnPos = {
 		x = landingStartPos.x - spawnTilesLeft,
 		y = landingStartPos.y
@@ -52,6 +52,7 @@ function Santa.CreateSantaGroup()
 
     MOD.SantaGroup = {
 		santaEntity = nil,
+		santaEntityShadow = nil,
 		surface = surface,
 		state = SantaStates.spawning,
 		currentPos = spawnPos,
@@ -74,26 +75,49 @@ end
 
 function Santa.SpawnSantaEntity(creationPos)
 	local santaGroup = MOD.SantaGroup
-	--TODO needs to account for flyingHeightTiles
 	local entityName
+	local height
 	if santaGroup.state == SantaStates.spawning then
 		entityName = "biter-santa-flying"
+		height = santaGroup.flyingHeightTiles
 	elseif santaGroup.state == SantaStates.landed then
 		entityName = "biter-santa-landed"
+		height = 0
 	elseif santaGroup.state == SantaStates.taking_off then
 		entityName = "biter-santa-flying"
+		height = 0
 	else
 		return
 	end
 	Santa.RemoveSantaEntity()
 	santaGroup.santaEntity = santaGroup.surface.create_entity{name = entityName, position = creationPos, direction = defines.direction.east, force = "neutral"}
 	santaGroup.santaEntity.destructible = false
+	Santa.CreateSantaEntityShadow(height)
+end
+
+function Santa.CreateSantaEntityShadow(height)
+	local santaGroup = MOD.SantaGroup
+	santaGroup.santaEntityShadow = santaGroup.surface.create_entity{name = "biter-santa-shadow", position = Santa.CalculateShadowSantaPosition(height), direction = defines.direction.east, force = "neutral"}
+	santaGroup.santaEntityShadow.destructible = false
+end
+
+function Santa.CalculateShadowSantaPosition(height)
+	local santaGroup = MOD.SantaGroup
+	local heightMod = height / 100
+	local shadowPos = {
+		x = santaGroup.currentPos.x + (60 * heightMod),
+		y = santaGroup.currentPos.y + (48 * heightMod)
+	}
+	return shadowPos
 end
 
 function Santa.RemoveSantaEntity()
-	if MOD.SantaGroup.santaEntity == nil then return end
-	if MOD.SantaGroup.santaEntity.valid then
-		MOD.SantaGroup.santaEntity.destroy()
+	local santaGroup = MOD.SantaGroup
+	if santaGroup.santaEntity ~= nil and santaGroup.santaEntity.valid then
+		santaGroup.santaEntity.destroy()
+	end
+	if santaGroup.santaEntityShadow ~= nil and santaGroup.santaEntityShadow.valid then
+		santaGroup.santaEntityShadow.destroy()
 	end
 end
 
@@ -232,6 +256,20 @@ function Santa.CreateFlyingBiterSmoke(santaEntityPosition)
 	for k, xPos in pairs(wheelSmokeSpotsXPos) do
 		santaGroup.surface.create_trivial_smoke{name = "santa-biter-air-smoke", position = {x = xPos, y = topWheelRowYPos}}
 		santaGroup.surface.create_trivial_smoke{name = "santa-biter-air-smoke", position = {x = xPos, y = bottomWheelRowYPos}}
+	end
+end
+
+function Santa.MoveSantaEntity(santaEntityPos, height)
+	local santaGroup = MOD.SantaGroup
+	if height == nil then height = 0 end
+	santaGroup.santaEntity.teleport(santaEntityPos)
+	if height > 0 then
+		Santa.CreateFlyingBiterSmoke(santaEntityPos)
+	end
+	if santaGroup.santaEntityShadow == nil then
+		Santa.CreateSantaEntityShadow(height)
+	else
+		santaGroup.santaEntityShadow.teleport(Santa.CalculateShadowSantaPosition(height))
 	end
 end
 

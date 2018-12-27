@@ -1,5 +1,5 @@
 # Factorio-Biter-Santa
-Adds a biter santa that can be called in by command, will land and then dismissed by command to fly away.
+Adds a biter santa that can be called in by command, will land and then can be dismissed by command to fly away.
 
 
 Features

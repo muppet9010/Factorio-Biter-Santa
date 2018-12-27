@@ -48,15 +48,17 @@ function SantaManager.Arriving()
 	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
 		return Santa.NotValidEntityOccured()
 	end
+	local speed = santaGroup.tickMoveSpeed
+	local height = santaGroup.flyingHeightTiles
 	santaGroup.currentPos = {
-		x = santaGroup.currentPos.x + santaGroup.tickMoveSpeed,
+		x = santaGroup.currentPos.x + speed,
 		y = santaGroup.currentPos.y
 	}
 	local santaEntityPos = {
 		x = santaGroup.currentPos.x,
-		y = santaGroup.currentPos.y - santaGroup.flyingHeightTiles
+		y = santaGroup.currentPos.y - height
 	}
-	santaGroup.santaEntity.teleport(santaEntityPos)
+	Santa.MoveSantaEntity(santaEntityPos, height)
 	Santa.CreateFlyingBiterSmoke(santaEntityPos)
 	if debug then Logging.Log(santaGroup.currentPos.x .. " >= " .. santaGroup.landingStartPos.x) end
 	if Utils.FuzzyCompareDoubles(">=", santaGroup.currentPos.x, santaGroup.landingStartPos.x) then
@@ -83,10 +85,7 @@ function SantaManager.LandingAir()
 		x = santaGroup.currentPos.x,
 		y = santaGroup.currentPos.y - height
 	}
-	santaGroup.santaEntity.teleport(santaEntityPos)
-	--if height > 1 then
-		Santa.CreateFlyingBiterSmoke(santaEntityPos)
-	--end
+	Santa.MoveSantaEntity(santaEntityPos, height)
 	if height < 2.5 then
 		Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity)
 	end
@@ -110,7 +109,7 @@ function SantaManager.LandingGround()
 		y = santaGroup.currentPos.y
 	}
 	local santaEntityPos = santaGroup.currentPos
-	santaGroup.santaEntity.teleport(santaEntityPos)
+	Santa.MoveSantaEntity(santaEntityPos)
 	Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity)
 	if speed > 0.05 then
 		Santa.CreateWheelSparks(santaEntityPos)

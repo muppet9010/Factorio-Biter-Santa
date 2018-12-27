@@ -1,8 +1,9 @@
-- seperate out shadows so that when flying they are on the ground in the correct place, based on height
-- make a VTOL image for him and an end position to move to before disappearing
+- give santa ability to fly away
+- give santa ability to VTOL and go away
 
 
 
-- Make seperate entity/graphics for the biters to be able to run whne moving and for the spitter to be able to turn and shoot.
-- Change spitter to be HD graphics version from Derp. Also check the mask as it incorrectly bulks up the spitter in old way I did it.
+- Make seperate entity/graphics for the biters to be able to run when moving.
+- Change spitter to be HD graphics version from Derp. Also check the mask as it incorrectly bulks up the spitter in old way I did it. Do i want it to be animated in some way?
 - make big smoke for the entry and exiting of santa
+- add some lighting to santa, clouds etc so that it looks nice at night
