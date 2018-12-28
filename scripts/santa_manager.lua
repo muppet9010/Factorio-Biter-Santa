@@ -16,7 +16,8 @@ function SantaManager.OnTick()
 	elseif santaGroup.state == SantaStates.landing_air then SantaManager.LandingAir()
 	elseif santaGroup.state == SantaStates.landing_ground then SantaManager.LandingGround()
 	elseif santaGroup.state == SantaStates.landed then SantaManager.Landed()
-	elseif santaGroup.state == SantaStates.vto then SantaManager.VTO()
+	elseif santaGroup.state == SantaStates.vto_up then SantaManager.VTOUp()
+	elseif santaGroup.state == SantaStates.vto_climb then SantaManager.VTOClimb()
 	elseif santaGroup.state == SantaStates.taking_off_ground then SantaManager.TakingOffGround()
 	elseif santaGroup.state == SantaStates.taking_off_air then SantaManager.TakingOffAir(0)
 	elseif santaGroup.state == SantaStates.departing then SantaManager.Departing()
@@ -28,7 +29,7 @@ function SantaManager.Spawning()
 	--TODO make clouds around his appearence spot for him to ride out of
 	local santaGroup = MOD.SantaGroup
 	santaGroup.currentPos = {
-		x = santaGroup.currentPos.x + santaGroup.tickMoveSpeed,
+		x = santaGroup.currentPos.x,
 		y = santaGroup.currentPos.y
 	}
 	local santaEntityPos = {
@@ -45,7 +46,7 @@ end
 
 function SantaManager.Arriving()
 	local santaGroup = MOD.SantaGroup
-	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
 	local speed = santaGroup.tickMoveSpeed
@@ -68,7 +69,7 @@ end
 
 function SantaManager.LandingAir()
 	local santaGroup = MOD.SantaGroup
-	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
 	local distanceToStopped = santaGroup.landedPos.x - santaGroup.currentPos.x
@@ -86,7 +87,7 @@ function SantaManager.LandingAir()
 		y = santaGroup.currentPos.y - height
 	}
 	Santa.MoveSantaEntity(santaEntityPos, height)
-	if height < 2.5 then
+	if height < santaGroup.groundDamageHeight then
 		Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity)
 	end
 	if santaGroup.stateIteration > #santaGroup.descentPattern then
@@ -97,7 +98,7 @@ end
 
 function SantaManager.LandingGround()
 	local santaGroup = MOD.SantaGroup
-	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
 	local distanceToStopped = santaGroup.landedPos.x - santaGroup.currentPos.x
@@ -127,42 +128,80 @@ end
 
 function SantaManager.Landed()
 	local santaGroup = MOD.SantaGroup
-	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
 end
 
-function SantaManager.VTO()
+function SantaManager.VTOUp()
 	local santaGroup = MOD.SantaGroup
-	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+	if not Santa.IsSantaEntityValid() then
+		return Santa.NotValidEntityOccured()
+	end
+	local height = santaGroup.vtoUpPattern[santaGroup.stateIteration]
+	santaGroup.stateIteration = santaGroup.stateIteration + 1
+	if debug then Logging.Log("height: " .. height) end
+	local santaEntityPos = {
+		x = santaGroup.currentPos.x,
+		y = santaGroup.currentPos.y - height
+	}
+	Santa.MoveSantaEntity(santaEntityPos)
+	if height < santaGroup.groundDamageHeight then
+		Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity)
+	end
+	if santaGroup.stateIteration > #santaGroup.vtoUpPattern then
+		santaGroup.state = SantaStates.vto_climb
+		santaGroup.stateIteration = 1
+	end
+end
+
+function SantaManager.VTOClimb()
+	local santaGroup = MOD.SantaGroup
+	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
 end
 
 function SantaManager.TakingOffGround()
 	local santaGroup = MOD.SantaGroup
-	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
 end
 
 function SantaManager.TakingOffAir()
 	local santaGroup = MOD.SantaGroup
-	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
 end
 
 function SantaManager.Departing()
 	local santaGroup = MOD.SantaGroup
-	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
+	end
+	local speed = santaGroup.tickMoveSpeed
+	local height = santaGroup.flyingHeightTiles
+	santaGroup.currentPos = {
+		x = santaGroup.currentPos.x + speed,
+		y = santaGroup.currentPos.y
+	}
+	local santaEntityPos = {
+		x = santaGroup.currentPos.x,
+		y = santaGroup.currentPos.y - height
+	}
+	Santa.MoveSantaEntity(santaEntityPos, height)
+	Santa.CreateFlyingBiterSmoke(santaEntityPos)
+	if debug then Logging.Log(santaGroup.currentPos.x .. " >= " .. santaGroup.disappearPos.x) end
+	if Utils.FuzzyCompareDoubles(">=", santaGroup.currentPos.x, santaGroup.disappearPos.x) then
+		santaGroup.state = SantaStates.disappearing
 	end
 end
 
 function SantaManager.Disappearing()
 	local santaGroup = MOD.SantaGroup
-	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
 end

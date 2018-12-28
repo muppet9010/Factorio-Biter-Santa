@@ -12,15 +12,17 @@ function Santa.CallSantaCommand(commandDetails)
 		end
 		game.players[commandDetails.player_index].print("Santa called")
 	end
-
 	Santa.CreateSantaGroup()
 end
 
 function Santa.CreateSantaGroup()
 	local tickMoveSpeed = 0.4
 	local descendSpeedReducton = 0.25
+	local maxVTOHeightRiseRate = 0.05
 	local altitudeChangeDistanceTiles = 80
 	local flyingHeightTiles = 10
+	local groundDamageHeight = 2.5
+	local phaseInOutDistance = math.floor(20 / tickMoveSpeed) * tickMoveSpeed
 	local landedPos = {
 		x = tonumber(settings.global["santa-landed-spot-x"].value),
 		y = tonumber(settings.global["santa-landed-spot-y"].value)
@@ -39,16 +41,27 @@ function Santa.CreateSantaGroup()
 		x = landedPos.x + altitudeChangeDistanceTiles,
 		y = landedPos.y
 	}
-	local spawnTilesLeft = math.floor((tonumber(settings.global["santa-spawn-tiles-left"].value) - landingDistance) / tickMoveSpeed) * tickMoveSpeed
+	local idealSpawnTilesLeft = math.floor((tonumber(settings.global["santa-spawn-tiles-left"].value) - landingDistance) / tickMoveSpeed) * tickMoveSpeed
+	if debug then Logging.Log("idealSpawnTilesLeft: " .. idealSpawnTilesLeft) end
 	local spawnPos = {
-		x = landingStartPos.x - spawnTilesLeft,
-		y = landingStartPos.y
+		x = landedPos.x - math.max(idealSpawnTilesLeft, (landingDistance + phaseInOutDistance)),
+		y = landedPos.y
 	}
 	local disappearPos = {
 		x = landedPos.x + tonumber(settings.global["santa-disappear-tiles-right"].value),
 		y = landedPos.y
     }
 	local surface = game.surfaces[1]
+	local takeoffSettingRaw = settings.global["santa-takeoff-method"].value
+	local takeoffMode, vtoUpPattern, vtoClimbPattern
+	if takeoffSettingRaw == "rolling horizontal takeoff" then
+		takeoffMode = "rolling"
+	elseif takeoffSettingRaw == "vertical takeoff" then
+		takeoffMode = "vto"
+		local transitionHeight = math.max((flyingHeightTiles / 2), (groundDamageHeight + 2))
+		vtoUpPattern = Santa.CalculateVTOUpPattern(transitionHeight, maxVTOHeightRiseRate)
+		vtoClimbPattern = Santa.CalculateVTOClimbPattern(transitionHeight, flyingHeightTiles, tickMoveSpeed, maxVTOHeightRiseRate)
+	end
 
     MOD.SantaGroup = {
 		santaEntity = nil,
@@ -64,13 +77,20 @@ function Santa.CreateSantaGroup()
 		tickMoveSpeed = tickMoveSpeed,
 		altitudeChangeDistanceTiles = altitudeChangeDistanceTiles,
 		flyingHeightTiles = flyingHeightTiles,
+		groundDamageHeight = groundDamageHeight,
 		collisionBox = game.entity_prototypes["biter-santa-landed"].collision_box,
 		descendSpeedReducton = descendSpeedReducton,
 		descentPattern = descentPattern,
 		groundSlowdownPattern = groundSlowdownPattern,
-		stateIteration = 1
+		stateIteration = 1,
+		takeoffMode = takeoffMode,
+		vtoUpPattern = vtoUpPattern,
+		vtoClimbPattern = vtoClimbPattern
 	}
-    if debug then Logging.LogPrint("Santa Created: " .. Logging.TableContentsToString(MOD.SantaGroup, "MOD.SantaGroup")) end
+	if debug then
+		Logging.LogPrint("Santa Created")
+		Logging.Log(Logging.TableContentsToString(MOD.SantaGroup, "MOD.SantaGroup"))
+	end
 end
 
 function Santa.SpawnSantaEntity(creationPos)
@@ -123,9 +143,16 @@ end
 
 function Santa.DismissSantaCommand(commandDetails)
 	if commandDetails ~= nil then
+		if MOD.SantaGroup == nil then
+			game.players[commandDetails.player_index].print("Santa is not on the map!")
+			return
+		elseif MOD.SantaGroup.state ~= SantaStates.landed then
+			game.players[commandDetails.player_index].print("Santa can only be dismissed when landed")
+			return
+		end
 		game.players[commandDetails.player_index].print("Santa dismissed")
 	end
-	--TODO
+	Santa.TakeOff()
 end
 
 function Santa.DeleteSantaCommand(commandDetails)
@@ -185,15 +212,25 @@ function Santa.CalculateLandingDistance(descentPattern, groundSlowdownPattern)
 	for k, data in pairs(descentPattern) do
 		descentDistance = descentDistance + data.speed
 	end
-	if debug then Logging.LogPrint("descentDistance: " .. descentDistance) end
+	if debug then Logging.Log("descentDistance: " .. descentDistance) end
 	local stoppingDistance = 0
 	for k, speed in pairs(groundSlowdownPattern) do
 		stoppingDistance = stoppingDistance + speed
 	end
-	if debug then Logging.LogPrint("stoppingDistance: " .. stoppingDistance) end
+	if debug then Logging.Log("stoppingDistance: " .. stoppingDistance) end
 	local landingDistance = descentDistance + stoppingDistance
-	if debug then Logging.LogPrint("landingDistance: " .. landingDistance) end
+	if debug then Logging.Log("landingDistance: " .. landingDistance) end
 	return landingDistance
+end
+
+function Santa.IsSantaEntityValid()
+	local santaGroup = MOD.SantaGroup
+	if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+		return false
+	elseif santaGroup.santaEntityShadow == nil or not santaGroup.santaEntityShadow.valid then
+		return false
+	end
+	return true
 end
 
 function Santa.NotValidEntityOccured()
@@ -266,11 +303,32 @@ function Santa.MoveSantaEntity(santaEntityPos, height)
 	if height > 0 then
 		Santa.CreateFlyingBiterSmoke(santaEntityPos)
 	end
-	if santaGroup.santaEntityShadow == nil then
-		Santa.CreateSantaEntityShadow(height)
-	else
-		santaGroup.santaEntityShadow.teleport(Santa.CalculateShadowSantaPosition(height))
+	santaGroup.santaEntityShadow.teleport(Santa.CalculateShadowSantaPosition(height))
+end
+
+function Santa.TakeOff()
+	local santaGroup = MOD.SantaGroup
+	if santaGroup.takeoffMode == "rolling" then
+		santaGroup.state = SantaStates.taking_off_ground
+	elseif santaGroup.takeoffMode == "vto" then
+		santaGroup.state = SantaStates.vto_up
 	end
+end
+
+function Santa.CalculateVTOUpPattern(targetHeight, maxRiseRate)
+	local vtoUpPattern = {}
+	local currentRise = 0.001
+	local riseIncrease = 1.1
+	local currentHeight = 0
+	while currentHeight < targetHeight do
+		currentRise = math.min((currentRise * riseIncrease), maxRiseRate)
+		currentHeight = currentHeight + currentRise
+		table.insert(vtoUpPattern, currentHeight)
+	end
+	return vtoUpPattern
+end
+
+function Santa.CalculateVTOClimbPattern(startHeight, targetHeight, maxSpeed, maxRiseRate)
 end
 
 return Santa

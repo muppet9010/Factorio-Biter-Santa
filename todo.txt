@@ -1,9 +1,8 @@
 - give santa ability to fly away
 - give santa ability to VTOL and go away
-
+- make big smoke for the entry and exiting of santa
+- add some lighting to santa, clouds etc so that it looks nice at night
 
 
 - Make seperate entity/graphics for the biters to be able to run when moving.
 - Change spitter to be HD graphics version from Derp. Also check the mask as it incorrectly bulks up the spitter in old way I did it. Do i want it to be animated in some way?
-- make big smoke for the entry and exiting of santa
-- add some lighting to santa, clouds etc so that it looks nice at night

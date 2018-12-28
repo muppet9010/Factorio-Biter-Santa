@@ -29,6 +29,14 @@ data:extend({
 		setting_type = "runtime-global",
 		order = "1004"
 	},
+	{
+		name = "santa-takeoff-method",
+		type = "string-setting",
+		default_value = "rolling horizontal takeoff",
+		allowed_values = {"rolling horizontal takeoff", "vertical takeoff"},
+		setting_type = "runtime-global",
+		order = "1005"
+	},
 
 
 	{
