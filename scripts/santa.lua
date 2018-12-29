@@ -59,8 +59,9 @@ function Santa.CreateSantaGroup()
 	elseif takeoffSettingRaw == "vertical takeoff" then
 		takeoffMode = "vto"
 		local transitionHeight = math.max((flyingHeightTiles / 2), (groundDamageHeight + 2))
-		vtoUpPattern = Santa.CalculateVTOUpPattern(transitionHeight, maxVTOHeightRiseRate)
-		vtoClimbPattern = Santa.CalculateVTOClimbPattern(transitionHeight, flyingHeightTiles, tickMoveSpeed, maxVTOHeightRiseRate)
+		local heightReached, currentRiseRate
+		vtoUpPattern, heightReached, currentRiseRate = Santa.CalculateVTOUpPattern(transitionHeight, maxVTOHeightRiseRate)
+		vtoClimbPattern = Santa.CalculateVTOClimbPattern(heightReached, flyingHeightTiles, tickMoveSpeed, currentRiseRate)
 	end
 
     MOD.SantaGroup = {
@@ -103,7 +104,7 @@ function Santa.SpawnSantaEntity(creationPos)
 	elseif santaGroup.state == SantaStates.landed then
 		entityName = "biter-santa-landed"
 		height = 0
-	elseif santaGroup.state == SantaStates.taking_off then
+	elseif santaGroup.state == SantaStates.taking_off_ground or santaGroup.state == SantaStates.vto_up then
 		entityName = "biter-santa-flying"
 		height = 0
 	else
@@ -159,6 +160,10 @@ function Santa.DeleteSantaCommand(commandDetails)
 	if commandDetails ~= nil then
 		game.players[commandDetails.player_index].print("Santa deleted")
 	end
+	Santa.DeleteSanta()
+end
+
+function Santa.DeleteSanta()
 	if MOD.SantaGroup == nil then return end
 	Santa.RemoveSantaEntity()
 	MOD.SantaGroup = nil
@@ -313,6 +318,7 @@ function Santa.TakeOff()
 	elseif santaGroup.takeoffMode == "vto" then
 		santaGroup.state = SantaStates.vto_up
 	end
+	Santa.SpawnSantaEntity(santaGroup.landedPos)
 end
 
 function Santa.CalculateVTOUpPattern(targetHeight, maxRiseRate)
@@ -322,13 +328,50 @@ function Santa.CalculateVTOUpPattern(targetHeight, maxRiseRate)
 	local currentHeight = 0
 	while currentHeight < targetHeight do
 		currentRise = math.min((currentRise * riseIncrease), maxRiseRate)
-		currentHeight = currentHeight + currentRise
+		currentHeight = (currentHeight + currentRise)
 		table.insert(vtoUpPattern, currentHeight)
 	end
-	return vtoUpPattern
+	return vtoUpPattern, currentHeight, currentRise
 end
 
-function Santa.CalculateVTOClimbPattern(startHeight, targetHeight, maxSpeed, maxRiseRate)
+function Santa.CalculateVTOClimbPattern(startHeight, targetHeight, maxSpeed, currentRiseRate)
+	local vtoClimbPattern = {}
+	local heightRiseSlowdown = 0.75
+	local speedIncreaseRate = 1.02
+	local minRiseRate = 0.015
+	local currentHeight = startHeight
+	local nearTargetHeight = targetHeight - 1
+	local currentSpeed = 0.01
+	while Utils.FuzzyCompareDoubles(currentHeight, "<", nearTargetHeight) do
+		if Utils.FuzzyCompareDoubles(currentRiseRate, ">", minRiseRate) then
+			currentRiseRate = math.max((currentRiseRate * heightRiseSlowdown), minRiseRate)
+		end
+		if Utils.FuzzyCompareDoubles(currentSpeed, "<=", maxSpeed) then
+			currentSpeed = math.min((currentSpeed * speedIncreaseRate), maxSpeed)
+		end
+		currentHeight = currentHeight + currentRiseRate
+		table.insert(vtoClimbPattern, {height = currentHeight, speed = currentSpeed})
+	end
+	while Utils.FuzzyCompareDoubles(currentHeight, "<", targetHeight) or Utils.FuzzyCompareDoubles(currentSpeed, "<", maxSpeed) do
+		currentHeight = math.min((currentHeight + currentRiseRate), targetHeight)
+		currentSpeed = math.min((currentSpeed * speedIncreaseRate), maxSpeed)
+		table.insert(vtoClimbPattern, {height = currentHeight, speed = currentSpeed})
+	end
+	return vtoClimbPattern
+end
+
+function Santa.CreateVTOFlames(santaEntityPosition)
+	local santaGroup = MOD.SantaGroup
+	local flamePos1 = {
+		x = santaEntityPosition.x - 1.5,
+		y = santaEntityPosition.y + 2.1
+	}
+	santaGroup.surface.create_trivial_smoke{name = "santa-biter-vto-flame", position = flamePos1}
+	local flamePos2 = {
+		x = santaEntityPosition.x - 5.6,
+		y = santaEntityPosition.y + 2.1
+	}
+	santaGroup.surface.create_trivial_smoke{name = "santa-biter-vto-flame", position = flamePos2}
 end
 
 return Santa

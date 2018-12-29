@@ -26,7 +26,6 @@ function SantaManager.OnTick()
 end
 
 function SantaManager.Spawning()
-	--TODO make clouds around his appearence spot for him to ride out of
 	local santaGroup = MOD.SantaGroup
 	santaGroup.currentPos = {
 		x = santaGroup.currentPos.x,
@@ -60,9 +59,8 @@ function SantaManager.Arriving()
 		y = santaGroup.currentPos.y - height
 	}
 	Santa.MoveSantaEntity(santaEntityPos, height)
-	Santa.CreateFlyingBiterSmoke(santaEntityPos)
 	if debug then Logging.Log(santaGroup.currentPos.x .. " >= " .. santaGroup.landingStartPos.x) end
-	if Utils.FuzzyCompareDoubles(">=", santaGroup.currentPos.x, santaGroup.landingStartPos.x) then
+	if Utils.FuzzyCompareDoubles(santaGroup.currentPos.x, ">=", santaGroup.landingStartPos.x) then
 		santaGroup.state = SantaStates.landing_air
 	end
 end
@@ -127,7 +125,6 @@ function SantaManager.LandingGround()
 end
 
 function SantaManager.Landed()
-	local santaGroup = MOD.SantaGroup
 	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
@@ -146,6 +143,7 @@ function SantaManager.VTOUp()
 		y = santaGroup.currentPos.y - height
 	}
 	Santa.MoveSantaEntity(santaEntityPos)
+	Santa.CreateVTOFlames(santaEntityPos)
 	if height < santaGroup.groundDamageHeight then
 		Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity)
 	end
@@ -160,6 +158,27 @@ function SantaManager.VTOClimb()
 	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
+	local speed = santaGroup.vtoClimbPattern[santaGroup.stateIteration].speed
+	local height = santaGroup.vtoClimbPattern[santaGroup.stateIteration].height
+	santaGroup.stateIteration = santaGroup.stateIteration + 1
+
+	if debug then Logging.Log("height: " .. height .. " - speed: " .. speed) end
+	santaGroup.currentPos = {
+		x = santaGroup.currentPos.x + speed,
+		y = santaGroup.currentPos.y
+	}
+	local santaEntityPos = {
+		x = santaGroup.currentPos.x,
+		y = santaGroup.currentPos.y - height
+	}
+	Santa.MoveSantaEntity(santaEntityPos, height)
+	if height < (santaGroup.flyingHeightTiles * 0.75) then
+		Santa.CreateVTOFlames(santaEntityPos)
+	end
+	if santaGroup.stateIteration > #santaGroup.vtoClimbPattern then
+		santaGroup.state = SantaStates.departing
+		santaGroup.stateIteration = 1
+	end
 end
 
 function SantaManager.TakingOffGround()
@@ -167,6 +186,7 @@ function SantaManager.TakingOffGround()
 	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
+	game.print("rolling horizontal takeoff not done yet, use Vertical Takeoff option instead")
 end
 
 function SantaManager.TakingOffAir()
@@ -194,16 +214,16 @@ function SantaManager.Departing()
 	Santa.MoveSantaEntity(santaEntityPos, height)
 	Santa.CreateFlyingBiterSmoke(santaEntityPos)
 	if debug then Logging.Log(santaGroup.currentPos.x .. " >= " .. santaGroup.disappearPos.x) end
-	if Utils.FuzzyCompareDoubles(">=", santaGroup.currentPos.x, santaGroup.disappearPos.x) then
+	if Utils.FuzzyCompareDoubles(santaGroup.currentPos.x, ">=", santaGroup.disappearPos.x) then
 		santaGroup.state = SantaStates.disappearing
 	end
 end
 
 function SantaManager.Disappearing()
-	local santaGroup = MOD.SantaGroup
 	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
+	Santa.DeleteSanta()
 end
 
 return SantaManager

@@ -80,5 +80,23 @@ data:extend({
 		show_when_smoke_off = true,
 		movement_slow_down_factor = 1,
 		render_layer = "smoke"
+	},
+	{
+		type = "trivial-smoke",
+		name = "santa-biter-vto-flame",
+		animation = {
+			filename = "__base__/graphics/entity/rocket-silo/10-rocket-under/jet-flame.png",
+			width = 88,
+			height = 132,
+			frame_count = 2,
+			line_length = 8,
+			animation_speed = 0.5,
+			scale = 0.75
+		},
+		duration = 1,
+		affected_by_wind = false,
+		show_when_smoke_off = true,
+		movement_slow_down_factor = 1,
+		render_layer = "smoke"
 	}
 })

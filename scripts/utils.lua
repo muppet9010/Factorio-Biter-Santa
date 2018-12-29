@@ -27,6 +27,10 @@ function Utils.LogisticEquation(index, height, steepness)
     return height / (1 + math.exp(steepness * (index - 0)))
 end
 
+function Utils.ExponentialDecayEquation(index, multiplyer, scale)
+    return multiplyer * math.exp(-index * scale)
+end
+
 function Utils.RoundNumberToDecimalPlaces(num, numDecimalPlaces)
 	local result
 	if numDecimalPlaces and numDecimalPlaces > 0 then
@@ -42,7 +46,7 @@ function Utils.RoundNumberToDecimalPlaces(num, numDecimalPlaces)
 end
 
 --This doesn't guarentee correct on some of the edge cases, but is as close as possible assuming that 1/256 is the variance for the same number (Bilka, Dev on Discord)
-function Utils.FuzzyCompareDoubles(logic, num1, num2)
+function Utils.FuzzyCompareDoubles(num1, logic, num2)
     local numDif = num1 - num2
     local variance = 1/256
     if logic == "=" then
