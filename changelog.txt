@@ -1,3 +1,8 @@
+0.1.1
+--------
+	- tidy up codebase comments
+
 0.1.0
-	Initial Release
-	Biter Santa activated on command with static entity graphics
+--------
+	- Initial Release
+	- Biter Santa activated on command with static entity graphics

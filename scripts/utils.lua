@@ -4,7 +4,6 @@ local Utils = {}
 function Utils.KillAllObjectsInArea(surface, positionedBoundingBox, killerEntity, collisionBoxOnlyEntities)
     local entitiesFound = surface.find_entities(positionedBoundingBox)
     for k, entity in pairs(entitiesFound) do
-        --got error that entity was invalid once somehow...
         if entity.valid then
             if entity.health ~= nil and entity.destructible and (
                 (collisionBoxOnlyEntities and Utils.IsCollisionBoxPopulated(entity.prototype.collision_box))
