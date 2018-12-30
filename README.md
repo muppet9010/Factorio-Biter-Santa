@@ -7,11 +7,11 @@ Features
 
 A flying Santa sleigh being pulled by biters. Made from ingame assets so fits in base game graphically.
 
-Santa will take 60 tiles to finish landing and stopping. It will detroy any buildings in its landing path.
+Santa will take 60 tiles to land and take off using a horizontal (runway) approach. It will detroy any ground based things in this path.
 
-Options for Santa to use Vertical Take Off or a runway take off to depart. Runway take off will need 60 tiles clear space to take off.
+Options for Santa to use Vertical Take Off or a runway take off to depart.
 
-Configurable start, landind and disappearing position throguht he clouds.
+Configurable start, landing and disappearing position through the clouds.
 
 Configurable santa status messages.
 

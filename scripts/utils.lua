@@ -1,11 +1,17 @@
 local Utils = {}
 --local Logging = require("scripts/logging")
 
-function Utils.KillEverythingInArea(surface, positionedBoundingBox, killerEntity)
+function Utils.KillAllObjectsInArea(surface, positionedBoundingBox, killerEntity, collisionBoxOnlyEntities)
     local entitiesFound = surface.find_entities(positionedBoundingBox)
     for k, entity in pairs(entitiesFound) do
-        if entity.health ~= nil and entity.destructible then
-            entity.die("neutral", killerEntity)
+        --got error that entity was invalid once somehow...
+        if entity.valid then
+            if entity.health ~= nil and entity.destructible and (
+                (collisionBoxOnlyEntities and Utils.IsCollisionBoxPopulated(entity.prototype.collision_box))
+                or (not collisionBoxOnlyEntities)
+            ) then
+                entity.die("neutral", killerEntity)
+            end
         end
     end
 end
@@ -21,6 +27,15 @@ function Utils.ApplyBoundingBoxToPosition(centrePos, boundingBox)
             y = centrePos.y + boundingBox.right_bottom.y
         }
     }
+end
+
+function Utils.IsCollisionBoxPopulated(collisionBox)
+    if collisionBox == nil then return false end
+    if collisionBox.left_top.x ~= 0 and collisionBox.left_top.y ~= 0 and collisionBox.right_bottom.x ~= 0 and collisionBox.right_bottom.y ~= 0 then
+        return true
+    else
+        return false
+    end
 end
 
 function Utils.LogisticEquation(index, height, steepness)

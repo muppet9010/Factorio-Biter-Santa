@@ -318,8 +318,10 @@ function Santa.TakeOff()
 	local santaGroup = MOD.SantaGroup
 	if santaGroup.takeoffMode == "rolling" then
 		santaGroup.state = SantaStates.taking_off_ground
+		santaGroup.stateIteration = #santaGroup.groundSlowdownPattern
 	elseif santaGroup.takeoffMode == "vto" then
 		santaGroup.state = SantaStates.vto_up
+		santaGroup.stateIteration = 1
 	end
 	Santa.SpawnSantaEntity(santaGroup.landedPos)
 end

@@ -1,5 +1,2 @@
-- give santa ability to fly away
-
-
 - Make seperate entity/graphics for the biters to be able to run when moving.
 - Change spitter to be HD graphics version from Derp. Also check the mask as it incorrectly bulks up the spitter in old way I did it. Do i want it to be animated in some way?

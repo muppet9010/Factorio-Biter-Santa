@@ -93,7 +93,7 @@ function SantaManager.LandingAir()
 	}
 	Santa.MoveSantaEntity(santaEntityPos, height)
 	if height < santaGroup.groundDamageHeight then
-		Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity)
+		Utils.KillAllObjectsInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity, true)
 	end
 	if santaGroup.stateIteration > #santaGroup.descentPattern then
 		santaGroup.state = SantaStates.landing_ground
@@ -116,7 +116,7 @@ function SantaManager.LandingGround()
 	}
 	local santaEntityPos = santaGroup.currentPos
 	Santa.MoveSantaEntity(santaEntityPos)
-	Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity)
+	Utils.KillAllObjectsInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity, true)
 	if speed > 0.05 then
 		Santa.CreateWheelSparks(santaEntityPos)
 	end
@@ -152,7 +152,7 @@ function SantaManager.VTOUp()
 	Santa.MoveSantaEntity(santaEntityPos, height)
 	Santa.CreateVTOFlames(santaEntityPos)
 	if height < santaGroup.groundDamageHeight then
-		Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity)
+		Utils.KillAllObjectsInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity, true)
 	end
 	if santaGroup.stateIteration > #santaGroup.vtoUpPattern then
 		santaGroup.state = SantaStates.vto_climb
@@ -193,13 +193,47 @@ function SantaManager.TakingOffGround()
 	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
-	game.print("rolling horizontal takeoff not done yet, use Vertical Takeoff option instead")
+	local speed = santaGroup.groundSlowdownPattern[santaGroup.stateIteration]
+	santaGroup.stateIteration = santaGroup.stateIteration - 1
+	if debug then Logging.Log("speed: " .. speed) end
+	santaGroup.currentPos = {
+		x = santaGroup.currentPos.x + speed,
+		y = santaGroup.currentPos.y
+	}
+	local santaEntityPos = santaGroup.currentPos
+	Santa.MoveSantaEntity(santaEntityPos)
+	Utils.KillAllObjectsInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity, true)
+	if santaGroup.stateIteration == 0 then
+		santaGroup.state = SantaStates.taking_off_air
+		santaGroup.stateIteration = #santaGroup.descentPattern
+	end
 end
 
 function SantaManager.TakingOffAir()
 	local santaGroup = MOD.SantaGroup
 	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
+	end
+	local speed = santaGroup.descentPattern[santaGroup.stateIteration].speed
+	local height = santaGroup.descentPattern[santaGroup.stateIteration].height
+	santaGroup.stateIteration = santaGroup.stateIteration - 1
+
+	if debug then Logging.Log("height: " .. height .. " - speed: " .. speed) end
+	santaGroup.currentPos = {
+		x = santaGroup.currentPos.x + speed,
+		y = santaGroup.currentPos.y
+	}
+	local santaEntityPos = {
+		x = santaGroup.currentPos.x,
+		y = santaGroup.currentPos.y - height
+	}
+	Santa.MoveSantaEntity(santaEntityPos, height)
+	if height < santaGroup.groundDamageHeight then
+		Utils.KillAllObjectsInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity, true)
+	end
+	if santaGroup.stateIteration == 0 then
+		santaGroup.state = SantaStates.departing
+		santaGroup.stateIteration = 1
 	end
 end
 
