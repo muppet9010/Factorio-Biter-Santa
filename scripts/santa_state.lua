@@ -1,4 +1,5 @@
 return {
+    pre_spawning = "pre_spawning",
     spawning = "spawning",
     arriving = "arriving",
     landing_air = "landing_air",

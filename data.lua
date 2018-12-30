@@ -19,10 +19,12 @@ local santaLanded = {
 	selectable_in_game = false,
 	map_color = {r=1, g=0 ,b=0, a=1}
 }
+
 local santaFlying = table.deepcopy(santaLanded)
 santaFlying.name = "biter-santa-flying"
 santaFlying.render_layer = "air-object"
 santaFlying.collision_mask = {}
+
 local santaShadow = {
 	type = "simple-entity",
 	name = "biter-santa-shadow",
@@ -33,11 +35,13 @@ local santaShadow = {
 		scale = 0.5,
 		shift = {0.1, -0.75},
 		priority = "extra-high",
-		draw_as_shadow = true
+		draw_as_shadow = true,
+		flags = {"shadow"}
 	},
 	flags = {"not-rotatable", "placeable-off-grid", "not-blueprintable", "not-deconstructable", "not-flammable", "not-on-map"},
 	render_layer = "smoke",
 	selectable_in_game = false,
+	collision_mask = {}
 }
 data:extend({santaLanded, santaFlying, santaShadow})
 
@@ -53,7 +57,8 @@ data:extend({
 			line_length = 19,
 			shift = {-0.109375, 0.3125},
 			tint = { r = 1.0, g = 0.9, b = 0.0, a = 1.0 },
-			animation_speed = 0.5
+			animation_speed = 0.5,
+			flags = {"smoke"}
 		},
 		duration = 24,
 		affected_by_wind = false,
@@ -65,7 +70,7 @@ data:extend({
 		type = "trivial-smoke",
 		name = "santa-biter-air-smoke",
 		animation = {
-			filename = Constants.GraphicsModName .. "/graphics/entity/biter-air-smoke.png",
+			filename = Constants.GraphicsModName .. "/graphics/entity/small-smoke-white.png",
 			width = 39,
 			height = 32,
 			x = 351,
@@ -73,7 +78,8 @@ data:extend({
 			line_length = 19,
 			shift = {0.078125, -0.15625},
 			scale = 1,
-			animation_speed = 0.5
+			animation_speed = 0.5,
+			flags = {"smoke"}
 		},
 		duration = 20,
 		affected_by_wind = false,
@@ -98,5 +104,30 @@ data:extend({
 		show_when_smoke_off = true,
 		movement_slow_down_factor = 1,
 		render_layer = "smoke"
+	},
+	{
+		type = "trivial-smoke",
+		name = "santa-biter-transition-smoke-massive",
+		animation = {
+			filename = Constants.GraphicsModName .. "/graphics/entity/large-smoke-white.png",
+			width = 152,
+			height = 120,
+			line_length = 5,
+			frame_count = 60,
+			direction_count = 1,
+			shift = {-2, -1},
+			priority = "high",
+			animation_speed = 0.25,
+			flags = {"smoke"},
+			scale = 10
+		},
+		duration = 400,
+		fade_in_duration = 180,
+		fade_away_duration = 60,
+		affected_by_wind = false,
+		show_when_smoke_off = true,
+		movement_slow_down_factor = 1,
+		render_layer = "air-entity-info-icon",
+		cyclic = true,
 	}
 })

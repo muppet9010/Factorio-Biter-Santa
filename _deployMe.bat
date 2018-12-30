@@ -29,6 +29,7 @@ REM CREATE EXCLUDE FILES LIST
 ECHO .bat >> excludedfileslist.txt
 ECHO .xcf >> excludedfileslist.txt
 ECHO - source\ >> excludedfileslist.txt
+ECHO .vscode >> excludedfileslist.txt
 ECHO excludedfileslist.txt >> excludedfileslist.txt
 
 REM COPY THE FILES

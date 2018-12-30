@@ -41,7 +41,7 @@ function Santa.CreateSantaGroup()
 		x = landedPos.x + altitudeChangeDistanceTiles,
 		y = landedPos.y
 	}
-	local idealSpawnTilesLeft = math.floor((tonumber(settings.global["santa-spawn-tiles-left"].value) - landingDistance) / tickMoveSpeed) * tickMoveSpeed
+	local idealSpawnTilesLeft = (math.floor((tonumber(settings.global["santa-spawn-tiles-left"].value) - landingDistance) / tickMoveSpeed) * tickMoveSpeed) + landingDistance
 	if debug then Logging.Log("idealSpawnTilesLeft: " .. idealSpawnTilesLeft) end
 	local spawnPos = {
 		x = landedPos.x - math.max(idealSpawnTilesLeft, (landingDistance + phaseInOutDistance)),
@@ -50,7 +50,8 @@ function Santa.CreateSantaGroup()
 	local disappearPos = {
 		x = landedPos.x + tonumber(settings.global["santa-disappear-tiles-right"].value),
 		y = landedPos.y
-    }
+	}
+	local phaseOutSmokeTriggerXPos = disappearPos.x - (240 * tickMoveSpeed)
 	local surface = game.surfaces[1]
 	local takeoffSettingRaw = settings.global["santa-takeoff-method"].value
 	local takeoffMode, vtoUpPattern, vtoClimbPattern
@@ -58,17 +59,18 @@ function Santa.CreateSantaGroup()
 		takeoffMode = "rolling"
 	elseif takeoffSettingRaw == "vertical takeoff" then
 		takeoffMode = "vto"
-		local transitionHeight = math.max((flyingHeightTiles / 2), (groundDamageHeight + 2))
+		local transitionHeight = math.max((flyingHeightTiles / 2), (groundDamageHeight + 1))
 		local heightReached, currentRiseRate
 		vtoUpPattern, heightReached, currentRiseRate = Santa.CalculateVTOUpPattern(transitionHeight, maxVTOHeightRiseRate)
 		vtoClimbPattern = Santa.CalculateVTOClimbPattern(heightReached, flyingHeightTiles, tickMoveSpeed, currentRiseRate)
 	end
 
     MOD.SantaGroup = {
+		nextStateTick = nil,
 		santaEntity = nil,
 		santaEntityShadow = nil,
 		surface = surface,
-		state = SantaStates.spawning,
+		state = SantaStates.pre_spawning,
 		currentPos = spawnPos,
 		spawnPos = spawnPos,
 		landingStartPos = landingStartPos,
@@ -86,7 +88,8 @@ function Santa.CreateSantaGroup()
 		stateIteration = 1,
 		takeoffMode = takeoffMode,
 		vtoUpPattern = vtoUpPattern,
-		vtoClimbPattern = vtoClimbPattern
+		vtoClimbPattern = vtoClimbPattern,
+		phaseOutSmokeTriggerXPos = phaseOutSmokeTriggerXPos
 	}
 	if debug then
 		Logging.LogPrint("Santa Created")
@@ -372,6 +375,26 @@ function Santa.CreateVTOFlames(santaEntityPosition)
 		y = santaEntityPosition.y + 2.1
 	}
 	santaGroup.surface.create_trivial_smoke{name = "santa-biter-vto-flame", position = flamePos2}
+end
+
+function Santa.GeneratePhaseInOutSmokeTickIteration(santaGroupPosition)
+	local santaGroup = MOD.SantaGroup
+	if santaGroup.stateIteration <= 60 then
+		if santaGroup.stateIteration % 6 == 0 then
+			santaGroup.nextStateTick = game.tick + 180
+			local smokePos = {
+				x = santaGroupPosition.x,
+				y = santaGroupPosition.y - santaGroup.flyingHeightTiles
+			}
+			Santa.CreatePhaseInOutSmoke(smokePos)
+		end
+		santaGroup.stateIteration = santaGroup.stateIteration + 1
+	end
+end
+
+function Santa.CreatePhaseInOutSmoke(santaEntityPosition)
+	local santaGroup = MOD.SantaGroup
+	santaGroup.surface.create_trivial_smoke{ name = "santa-biter-transition-smoke-massive", position = {x = santaEntityPosition.x, y = santaEntityPosition.y}}
 end
 
 return Santa

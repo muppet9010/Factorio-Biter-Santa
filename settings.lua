@@ -17,7 +17,7 @@ data:extend({
 		name = "santa-spawn-tiles-left",
 		type = "int-setting",
 		default_value = 200,
-		minimum_value = 100,
+		minimum_value = 150,
 		setting_type = "runtime-global",
 		order = "1003"
 	},
@@ -25,7 +25,7 @@ data:extend({
 		name = "santa-disappear-tiles-right",
 		type = "int-setting",
 		default_value = 200,
-		minimum_value = 100,
+		minimum_value = 150,
 		setting_type = "runtime-global",
 		order = "1004"
 	},

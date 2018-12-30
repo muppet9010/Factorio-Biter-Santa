@@ -11,7 +11,8 @@ function SantaManager.OnTick()
 	if santaGroup == nil then return end
 	if debug then Logging.Log("SantaManager.OnTick() state: " .. santaGroup.state) end
 
-	if santaGroup.state == SantaStates.spawning then SantaManager.Spawning()
+	if santaGroup.state == SantaStates.pre_spawning then SantaManager.PreSpawning()
+	elseif santaGroup.state == SantaStates.spawning then SantaManager.Spawning()
 	elseif santaGroup.state == SantaStates.arriving then SantaManager.Arriving()
 	elseif santaGroup.state == SantaStates.landing_air then SantaManager.LandingAir()
 	elseif santaGroup.state == SantaStates.landing_ground then SantaManager.LandingGround()
@@ -25,15 +26,21 @@ function SantaManager.OnTick()
 	end
 end
 
+function SantaManager.PreSpawning()
+	local santaGroup = MOD.SantaGroup
+	Santa.GeneratePhaseInOutSmokeTickIteration(santaGroup.spawnPos)
+	if santaGroup.nextStateTick ~= nil and game.tick >= santaGroup.nextStateTick then
+		santaGroup.state = SantaStates.spawning
+		santaGroup.nextStateTick = nil
+		santaGroup.stateIteration = 1
+	end
+end
+
 function SantaManager.Spawning()
 	local santaGroup = MOD.SantaGroup
-	santaGroup.currentPos = {
-		x = santaGroup.currentPos.x,
-		y = santaGroup.currentPos.y
-	}
 	local santaEntityPos = {
 		x = santaGroup.currentPos.x,
-		y = santaGroup.currentPos.y + santaGroup.flyingHeightTiles
+		y = santaGroup.currentPos.y - santaGroup.flyingHeightTiles
 	}
 	Santa.SpawnSantaEntity(santaEntityPos)
 	santaGroup.state = SantaStates.arriving
@@ -142,7 +149,7 @@ function SantaManager.VTOUp()
 		x = santaGroup.currentPos.x,
 		y = santaGroup.currentPos.y - height
 	}
-	Santa.MoveSantaEntity(santaEntityPos)
+	Santa.MoveSantaEntity(santaEntityPos, height)
 	Santa.CreateVTOFlames(santaEntityPos)
 	if height < santaGroup.groundDamageHeight then
 		Utils.KillEverythingInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity)
@@ -213,9 +220,13 @@ function SantaManager.Departing()
 	}
 	Santa.MoveSantaEntity(santaEntityPos, height)
 	Santa.CreateFlyingBiterSmoke(santaEntityPos)
+	if Utils.FuzzyCompareDoubles(santaGroup.currentPos.x, ">=", santaGroup.phaseOutSmokeTriggerXPos) then
+		Santa.GeneratePhaseInOutSmokeTickIteration(santaGroup.disappearPos)
+	end
 	if debug then Logging.Log(santaGroup.currentPos.x .. " >= " .. santaGroup.disappearPos.x) end
 	if Utils.FuzzyCompareDoubles(santaGroup.currentPos.x, ">=", santaGroup.disappearPos.x) then
 		santaGroup.state = SantaStates.disappearing
+		santaGroup.stateIteration = 1
 	end
 end
 

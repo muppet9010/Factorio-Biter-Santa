@@ -7,13 +7,13 @@ Features
 
 A flying Santa sleigh being pulled by biters. Made from ingame assets so fits in base game graphically.
 
-Configurable start, landind and disappearing position
-
-Configurable santa status messages.
-
 Santa will take 60 tiles to finish landing and stopping. It will detroy any buildings in its landing path.
 
-Options for Santa to use Vertical Take Off or a runway take off to depart.
+Options for Santa to use Vertical Take Off or a runway take off to depart. Runway take off will need 60 tiles clear space to take off.
+
+Configurable start, landind and disappearing position throguht he clouds.
+
+Configurable santa status messages.
 
 
 Commands
@@ -30,3 +30,5 @@ Notes
 -----
 
 Some of the graphics and effects are a bit rough, this is my first exploration in this.
+
+Best used during the day as no lights are included on santa. This is as I can't make lights on santa affect only it and not the buildings behind it due to Factorios 2D view of height.
