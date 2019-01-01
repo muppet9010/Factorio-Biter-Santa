@@ -47,23 +47,29 @@ function Santa.CreateSantaGroup()
 		x = landedPos.x - math.max(idealSpawnTilesLeft, (landingDistance + phaseInOutDistance)),
 		y = landedPos.y
 	}
-	local disappearPos = {
-		x = landedPos.x + tonumber(settings.global["santa-disappear-tiles-right"].value),
-		y = landedPos.y
-	}
-	local phaseOutSmokeTriggerXPos = disappearPos.x - (240 * tickMoveSpeed)
 	local surface = game.surfaces[1]
 	local takeoffSettingRaw = settings.global["santa-takeoff-method"].value
-	local takeoffMode, vtoUpPattern, vtoClimbPattern
+	local takeoffMode, vtoUpPattern, vtoClimbPattern, idealDisappearTilesRight, minDisappearTilesRight
 	if takeoffSettingRaw == "rolling horizontal takeoff" then
 		takeoffMode = "rolling"
+		idealDisappearTilesRight = (math.floor((tonumber(settings.global["santa-disappear-tiles-right"].value) - landingDistance) / tickMoveSpeed) * tickMoveSpeed) + landingDistance
+		minDisappearTilesRight = landingDistance + phaseInOutDistance
 	elseif takeoffSettingRaw == "vertical takeoff" then
 		takeoffMode = "vto"
 		local transitionHeight = math.max((flyingHeightTiles / 2), (groundDamageHeight + 1))
 		local heightReached, currentRiseRate
 		vtoUpPattern, heightReached, currentRiseRate = Santa.CalculateVTOUpPattern(transitionHeight, maxVTOHeightRiseRate)
 		vtoClimbPattern = Santa.CalculateVTOClimbPattern(heightReached, flyingHeightTiles, tickMoveSpeed, currentRiseRate)
+		local vtoTakeOffDistance = Santa.CalculateVTOTakeoffDistance(vtoClimbPattern)
+		idealDisappearTilesRight = (math.floor((tonumber(settings.global["santa-disappear-tiles-right"].value) - vtoTakeOffDistance) / tickMoveSpeed) * tickMoveSpeed) + vtoTakeOffDistance
+		minDisappearTilesRight = vtoTakeOffDistance + phaseInOutDistance
 	end
+	if debug then Logging.Log("idealDisappearTilesRight: " .. idealDisappearTilesRight) end
+	local disappearPos = {
+		x = landedPos.x + math.max(idealDisappearTilesRight, minDisappearTilesRight),
+		y = landedPos.y
+	}
+	local phaseOutSmokeTriggerXPos = disappearPos.x - (240 * tickMoveSpeed)
 
     MOD.SantaGroup = {
 		nextStateTick = nil,
@@ -86,6 +92,7 @@ function Santa.CreateSantaGroup()
 		descentPattern = descentPattern,
 		groundSlowdownPattern = groundSlowdownPattern,
 		stateIteration = 1,
+		phaseInSmokeIteration = 1,
 		takeoffMode = takeoffMode,
 		vtoUpPattern = vtoUpPattern,
 		vtoClimbPattern = vtoClimbPattern,
@@ -365,6 +372,17 @@ function Santa.CalculateVTOClimbPattern(startHeight, targetHeight, maxSpeed, cur
 	return vtoClimbPattern
 end
 
+function Santa.CalculateVTOTakeoffDistance(vtoClimbPattern)
+	local climbDistance = 0
+	for k, data in pairs(vtoClimbPattern) do
+		climbDistance = climbDistance + data.speed
+	end
+	if debug then Logging.Log("climbDistance: " .. climbDistance) end
+	local vtoTakeoffDistance = climbDistance
+	if debug then Logging.Log("vtoTakeoffDistance: " .. vtoTakeoffDistance) end
+	return vtoTakeoffDistance
+end
+
 function Santa.CreateVTOFlames(santaEntityPosition)
 	local santaGroup = MOD.SantaGroup
 	local flamePos1 = {
@@ -381,8 +399,8 @@ end
 
 function Santa.GeneratePhaseInOutSmokeTickIteration(santaGroupPosition)
 	local santaGroup = MOD.SantaGroup
-	if santaGroup.stateIteration <= 60 then
-		if santaGroup.stateIteration % 6 == 0 then
+	if santaGroup.phaseInSmokeIteration <= 60 then
+		if santaGroup.phaseInSmokeIteration % 6 == 0 then
 			santaGroup.nextStateTick = game.tick + 180
 			local smokePos = {
 				x = santaGroupPosition.x,
@@ -390,7 +408,7 @@ function Santa.GeneratePhaseInOutSmokeTickIteration(santaGroupPosition)
 			}
 			Santa.CreatePhaseInOutSmoke(smokePos)
 		end
-		santaGroup.stateIteration = santaGroup.stateIteration + 1
+		santaGroup.phaseInSmokeIteration = santaGroup.phaseInSmokeIteration + 1
 	end
 end
 

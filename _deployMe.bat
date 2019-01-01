@@ -31,6 +31,7 @@ ECHO .xcf >> excludedfileslist.txt
 ECHO - source\ >> excludedfileslist.txt
 ECHO .vscode >> excludedfileslist.txt
 ECHO excludedfileslist.txt >> excludedfileslist.txt
+ECHO videos and notes >> excludedfileslist.txt
 
 REM COPY THE FILES
 XCOPY "%folderpath%" "%APPDATA%\Factorio\mods\%modfoldername%" /S /E /Y /I /Q /EXCLUDE:excludedfileslist.txt
