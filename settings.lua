@@ -16,7 +16,7 @@ data:extend({
 	{
 		name = "santa-spawn-tiles-left",
 		type = "int-setting",
-		default_value = 200,
+		default_value = 150,
 		minimum_value = 150,
 		setting_type = "runtime-global",
 		order = "1003"
@@ -24,7 +24,7 @@ data:extend({
 	{
 		name = "santa-disappear-tiles-right",
 		type = "int-setting",
-		default_value = 200,
+		default_value = 150,
 		minimum_value = 150,
 		setting_type = "runtime-global",
 		order = "1004"
@@ -49,7 +49,7 @@ data:extend({
 	{
 		name = "santa-arrived-message",
 		type = "string-setting",
-		default_value = "Santa has arrived for all the good and bad little boys and girls!",
+		default_value = "Santa has arrived for all the good and bad little engineers!",
 		setting_type = "runtime-global",
 		order = "2002"
 	},

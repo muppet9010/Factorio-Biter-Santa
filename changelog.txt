@@ -1,6 +1,7 @@
 0.1.1
 --------
-	- tidy up codebase comments
+	- FIX: departing smoke could generate too late to completely hide santa
+	- tidy up codebase comments and documentation for publication
 
 0.1.0
 --------

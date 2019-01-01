@@ -132,9 +132,11 @@ function SantaManager.LandingGround()
 end
 
 function SantaManager.Landed()
+	local santaGroup = MOD.SantaGroup
 	if not Santa.IsSantaEntityValid() then
 		return Santa.NotValidEntityOccured()
 	end
+	santaGroup.phaseInSmokeIteration = 1
 end
 
 function SantaManager.VTOUp()
@@ -231,6 +233,9 @@ function SantaManager.TakingOffAir()
 	if height < santaGroup.groundDamageHeight then
 		Utils.KillAllObjectsInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity, true)
 	end
+	if santaGroup.phaseInSmokeIteration <= 60 and Utils.FuzzyCompareDoubles(santaGroup.currentPos.x, ">=", santaGroup.phaseOutSmokeTriggerXPos) then
+		Santa.GeneratePhaseInOutSmokeTickIteration(santaGroup.disappearPos)
+	end
 	if santaGroup.stateIteration == 0 then
 		santaGroup.state = SantaStates.departing
 		santaGroup.stateIteration = 1
@@ -253,8 +258,7 @@ function SantaManager.Departing()
 		y = santaGroup.currentPos.y - height
 	}
 	Santa.MoveSantaEntity(santaEntityPos, height)
-	Santa.CreateFlyingBiterSmoke(santaEntityPos)
-	if Utils.FuzzyCompareDoubles(santaGroup.currentPos.x, ">=", santaGroup.phaseOutSmokeTriggerXPos) then
+	if santaGroup.phaseInSmokeIteration <= 60 and Utils.FuzzyCompareDoubles(santaGroup.currentPos.x, ">=", santaGroup.phaseOutSmokeTriggerXPos) then
 		Santa.GeneratePhaseInOutSmokeTickIteration(santaGroup.disappearPos)
 	end
 	if debug then Logging.Log(santaGroup.currentPos.x .. " >= " .. santaGroup.disappearPos.x) end
