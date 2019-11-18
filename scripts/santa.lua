@@ -2,7 +2,18 @@ local Santa = {}
 local SantaStates = require("scripts/santa_state")
 local Logging = require("utility/logging")
 local Utils = require("utility/utils")
+local Commands = require("utility/commands")
 local debug = false
+
+Santa.OnLoad = function()
+    Santa.RegisterCommands()
+end
+
+Santa.RegisterCommands = function()
+    Commands.Register("call-santa", {"api-description.call-santa"}, Santa.CallSantaCommand, true)
+    Commands.Register("dismiss-santa", {"api-description.dismiss-santa"}, Santa.DismissSantaCommand, true)
+    Commands.Register("delete-santa", {"api-description.delete-santa"}, Santa.DeleteSantaCommand, true)
+end
 
 Santa.CallSantaCommand = function(commandDetails)
     if commandDetails ~= nil then
