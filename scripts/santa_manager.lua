@@ -4,16 +4,19 @@ local SantaStates = require("scripts/santa_state")
 local Logging = require("utility/logging")
 local Constants = require("constants")
 local Utils = require("utility/utils")
+local Events = require("utility/events")
 local debug = false
 
-function SantaManager.OnTick()
+function SantaManager.OnLoad()
+    Events.RegisterHandler(defines.events.on_tick, "SantaManager", SantaManager.OnTick)
+end
+
+SantaManager.OnTick = function()
     local santaGroup = global.SantaGroup
     if santaGroup == nil then
         return
     end
-    if debug then
-        Logging.Log("SantaManager.OnTick() state: " .. santaGroup.state)
-    end
+    Logging.Log("SantaManager.OnTick() state: " .. santaGroup.state, debug)
 
     if santaGroup.state == SantaStates.pre_spawning then
         SantaManager.PreSpawning()
@@ -42,7 +45,7 @@ function SantaManager.OnTick()
     end
 end
 
-function SantaManager.PreSpawning()
+SantaManager.PreSpawning = function()
     local santaGroup = global.SantaGroup
     Santa.GeneratePhaseInOutSmokeTickIteration(santaGroup.spawnPos)
     if santaGroup.nextStateTick ~= nil and game.tick >= santaGroup.nextStateTick then
@@ -52,7 +55,7 @@ function SantaManager.PreSpawning()
     end
 end
 
-function SantaManager.Spawning()
+SantaManager.Spawning = function()
     local santaGroup = global.SantaGroup
     local santaEntityPos = {
         x = santaGroup.currentPos.x,
@@ -66,7 +69,7 @@ function SantaManager.Spawning()
     end
 end
 
-function SantaManager.Arriving()
+SantaManager.Arriving = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -82,15 +85,13 @@ function SantaManager.Arriving()
         y = santaGroup.currentPos.y - height
     }
     Santa.MoveSantaEntity(santaEntityPos, height)
-    if debug then
-        Logging.Log(santaGroup.currentPos.x .. " >= " .. santaGroup.landingStartPos.x)
-    end
+    Logging.Log(santaGroup.currentPos.x .. " >= " .. santaGroup.landingStartPos.x, debug)
     if Utils.FuzzyCompareDoubles(santaGroup.currentPos.x, ">=", santaGroup.landingStartPos.x) then
         santaGroup.state = SantaStates.landing_air
     end
 end
 
-function SantaManager.LandingAir()
+SantaManager.LandingAir = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -100,9 +101,7 @@ function SantaManager.LandingAir()
     local height = santaGroup.descentPattern[santaGroup.stateIteration].height
     santaGroup.stateIteration = santaGroup.stateIteration + 1
 
-    if debug then
-        Logging.Log("distanceToStopped: " .. distanceToStopped .. " - height: " .. height .. " - speed: " .. speed)
-    end
+    Logging.Log("distanceToStopped: " .. distanceToStopped .. " - height: " .. height .. " - speed: " .. speed, debug)
     santaGroup.currentPos = {
         x = santaGroup.currentPos.x + speed,
         y = santaGroup.currentPos.y
@@ -121,7 +120,7 @@ function SantaManager.LandingAir()
     end
 end
 
-function SantaManager.LandingGround()
+SantaManager.LandingGround = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -129,9 +128,7 @@ function SantaManager.LandingGround()
     local distanceToStopped = santaGroup.landedPos.x - santaGroup.currentPos.x
     local speed = santaGroup.groundSlowdownPattern[santaGroup.stateIteration]
     santaGroup.stateIteration = santaGroup.stateIteration + 1
-    if debug then
-        Logging.Log("distanceToStopped: " .. distanceToStopped .. " - speed: " .. speed)
-    end
+    Logging.Log("distanceToStopped: " .. distanceToStopped .. " - speed: " .. speed, debug)
     santaGroup.currentPos = {
         x = santaGroup.currentPos.x + speed,
         y = santaGroup.currentPos.y
@@ -153,7 +150,7 @@ function SantaManager.LandingGround()
     end
 end
 
-function SantaManager.Landed()
+SantaManager.Landed = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -161,16 +158,14 @@ function SantaManager.Landed()
     santaGroup.phaseInSmokeIteration = 1
 end
 
-function SantaManager.VTOUp()
+SantaManager.VTOUp = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
     end
     local height = santaGroup.vtoUpPattern[santaGroup.stateIteration]
     santaGroup.stateIteration = santaGroup.stateIteration + 1
-    if debug then
-        Logging.Log("height: " .. height)
-    end
+    Logging.Log("height: " .. height, debug)
     local santaEntityPos = {
         x = santaGroup.currentPos.x,
         y = santaGroup.currentPos.y - height
@@ -186,7 +181,7 @@ function SantaManager.VTOUp()
     end
 end
 
-function SantaManager.VTOClimb()
+SantaManager.VTOClimb = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -195,9 +190,7 @@ function SantaManager.VTOClimb()
     local height = santaGroup.vtoClimbPattern[santaGroup.stateIteration].height
     santaGroup.stateIteration = santaGroup.stateIteration + 1
 
-    if debug then
-        Logging.Log("height: " .. height .. " - speed: " .. speed)
-    end
+    Logging.Log("height: " .. height .. " - speed: " .. speed, debug)
     santaGroup.currentPos = {
         x = santaGroup.currentPos.x + speed,
         y = santaGroup.currentPos.y
@@ -216,16 +209,14 @@ function SantaManager.VTOClimb()
     end
 end
 
-function SantaManager.TakingOffGround()
+SantaManager.TakingOffGround = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
     end
     local speed = santaGroup.groundSlowdownPattern[santaGroup.stateIteration]
     santaGroup.stateIteration = santaGroup.stateIteration - 1
-    if debug then
-        Logging.Log("speed: " .. speed)
-    end
+    Logging.Log("speed: " .. speed, debug)
     santaGroup.currentPos = {
         x = santaGroup.currentPos.x + speed,
         y = santaGroup.currentPos.y
@@ -239,7 +230,7 @@ function SantaManager.TakingOffGround()
     end
 end
 
-function SantaManager.TakingOffAir()
+SantaManager.TakingOffAir = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -247,10 +238,7 @@ function SantaManager.TakingOffAir()
     local speed = santaGroup.descentPattern[santaGroup.stateIteration].speed
     local height = santaGroup.descentPattern[santaGroup.stateIteration].height
     santaGroup.stateIteration = santaGroup.stateIteration - 1
-
-    if debug then
-        Logging.Log("height: " .. height .. " - speed: " .. speed)
-    end
+    Logging.Log("height: " .. height .. " - speed: " .. speed, debug)
     santaGroup.currentPos = {
         x = santaGroup.currentPos.x + speed,
         y = santaGroup.currentPos.y
@@ -272,7 +260,7 @@ function SantaManager.TakingOffAir()
     end
 end
 
-function SantaManager.Departing()
+SantaManager.Departing = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -291,16 +279,14 @@ function SantaManager.Departing()
     if santaGroup.phaseInSmokeIteration <= 60 and Utils.FuzzyCompareDoubles(santaGroup.currentPos.x, ">=", santaGroup.phaseOutSmokeTriggerXPos) then
         Santa.GeneratePhaseInOutSmokeTickIteration(santaGroup.disappearPos)
     end
-    if debug then
-        Logging.Log(santaGroup.currentPos.x .. " >= " .. santaGroup.disappearPos.x)
-    end
+    Logging.Log(santaGroup.currentPos.x .. " >= " .. santaGroup.disappearPos.x, debug)
     if Utils.FuzzyCompareDoubles(santaGroup.currentPos.x, ">=", santaGroup.disappearPos.x) then
         santaGroup.state = SantaStates.disappearing
         santaGroup.stateIteration = 1
     end
 end
 
-function SantaManager.Disappearing()
+SantaManager.Disappearing = function()
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
     end

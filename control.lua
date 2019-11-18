@@ -1,5 +1,6 @@
 local Santa = require("scripts/santa")
 local SantaManager = require("scripts/santa_manager")
+local Events = require("utility/events")
 
 local RegisterCommands = function()
     commands.remove_command("call-santa")
@@ -10,19 +11,16 @@ local RegisterCommands = function()
     commands.add_command("delete-santa", {"api-description.delete-santa"}, Santa.DeleteSantaCommand)
 end
 
-local OnStartup = function()
-    RegisterCommands()
-end
-
 local OnLoad = function()
     RegisterCommands()
+    SantaManager.OnLoad()
 end
 
-local OnTick = function()
-    SantaManager.OnTick()
+local OnStartup = function()
+    OnLoad()
 end
 
 script.on_init(OnStartup)
 script.on_load(OnLoad)
 script.on_configuration_changed(OnStartup)
-script.on_event(defines.events.on_tick, OnTick)
+Events.RegisterEvent(defines.events.on_tick)
