@@ -1,2 +1,5 @@
+- Make flying santa clear a larger area when landing & takign off so he doesn't overlap graphics. Also add a bit of smoke to obscure anythig dodgy.
+
 - Make seperate animation graphics for the biters to be able to run when moving. needs to have shadow tied to the animation somehow so when it lands it looks right. maybe as a single graphic for all biters and sleigh if an entity type allows control over animation speed via script?
+
 - Change spitter to be HD graphics version from Derp. Also check the mask as it incorrectly bulks up the spitter in old way I did it. Do i want it to be animated in some way? Fix its shadow to be split between the biters and part of the seperate shadow layer.

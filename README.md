@@ -16,6 +16,7 @@ Features
 - Options for Santa to use Vertical Take Off or a horizontal runway take off to depart.
 - Configurable start, landing and disappearing position through the clouds.
 - Configurable santa status messages.
+- Santa is indestructible and cannot be interacted with in any way other than the commands.
 
 Commands
 -------
