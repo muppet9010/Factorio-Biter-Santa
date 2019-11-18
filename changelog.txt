@@ -3,8 +3,11 @@ Version: 0.1.2
 Date: 2019-XX-XX
   Features:
     - Update to .17
+  Bugfixes:
+    - Add missing Santa Takeoff Method setting localisation
   Info:
     - Move to generic utility library from bespoke functions
+    - General modernisation of mod structure
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.1
 Date: 2019-01-01
