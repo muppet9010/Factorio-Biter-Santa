@@ -6,7 +6,7 @@ local debug = false
 
 function Santa.CallSantaCommand(commandDetails)
     if commandDetails ~= nil then
-        if MOD.SantaGroup ~= nil then
+        if global.SantaGroup ~= nil then
             game.players[commandDetails.player_index].print("Santa is already on the map and there is only 1 of him!")
             return
         end
@@ -75,7 +75,7 @@ function Santa.CreateSantaGroup()
     }
     local phaseOutSmokeTriggerXPos = disappearPos.x - (240 * tickMoveSpeed)
 
-    MOD.SantaGroup = {
+    global.SantaGroup = {
         nextStateTick = nil,
         santaEntity = nil,
         santaEntityShadow = nil,
@@ -104,12 +104,12 @@ function Santa.CreateSantaGroup()
     }
     if debug then
         Logging.LogPrint("Santa Created")
-        Logging.Log(Utils.TableContentsToString(MOD.SantaGroup, "MOD.SantaGroup"))
+        Logging.Log(Utils.TableContentsToString(global.SantaGroup, "global.SantaGroup"))
     end
 end
 
 function Santa.SpawnSantaEntity(creationPos)
-    local santaGroup = MOD.SantaGroup
+    local santaGroup = global.SantaGroup
     local entityName
     local height
     if santaGroup.state == SantaStates.spawning then
@@ -131,13 +131,13 @@ function Santa.SpawnSantaEntity(creationPos)
 end
 
 function Santa.CreateSantaEntityShadow(height)
-    local santaGroup = MOD.SantaGroup
+    local santaGroup = global.SantaGroup
     santaGroup.santaEntityShadow = santaGroup.surface.create_entity {name = "biter-santa-shadow", position = Santa.CalculateShadowSantaPosition(height), direction = defines.direction.east, force = "neutral"}
     santaGroup.santaEntityShadow.destructible = false
 end
 
 function Santa.CalculateShadowSantaPosition(height)
-    local santaGroup = MOD.SantaGroup
+    local santaGroup = global.SantaGroup
     local heightMod = height / 100
     local shadowPos = {
         x = santaGroup.currentPos.x + (60 * heightMod),
@@ -147,7 +147,7 @@ function Santa.CalculateShadowSantaPosition(height)
 end
 
 function Santa.RemoveSantaEntity()
-    local santaGroup = MOD.SantaGroup
+    local santaGroup = global.SantaGroup
     if santaGroup.santaEntity ~= nil and santaGroup.santaEntity.valid then
         santaGroup.santaEntity.destroy()
     end
@@ -158,10 +158,10 @@ end
 
 function Santa.DismissSantaCommand(commandDetails)
     if commandDetails ~= nil then
-        if MOD.SantaGroup == nil then
+        if global.SantaGroup == nil then
             game.players[commandDetails.player_index].print("Santa is not on the map!")
             return
-        elseif MOD.SantaGroup.state ~= SantaStates.landed then
+        elseif global.SantaGroup.state ~= SantaStates.landed then
             game.players[commandDetails.player_index].print("Santa can only be dismissed when landed")
             return
         end
@@ -178,11 +178,11 @@ function Santa.DeleteSantaCommand(commandDetails)
 end
 
 function Santa.DeleteSanta()
-    if MOD.SantaGroup == nil then
+    if global.SantaGroup == nil then
         return
     end
     Santa.RemoveSantaEntity()
-    MOD.SantaGroup = nil
+    global.SantaGroup = nil
 end
 
 function Santa.CalculateDescentPattern(tickMoveSpeed, endingSpeed, altitudeChangeDistanceTiles, flyingHeightTiles)
@@ -254,7 +254,7 @@ function Santa.CalculateLandingDistance(descentPattern, groundSlowdownPattern)
 end
 
 function Santa.IsSantaEntityValid()
-    local santaGroup = MOD.SantaGroup
+    local santaGroup = global.SantaGroup
     if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
         return false
     elseif santaGroup.santaEntityShadow == nil or not santaGroup.santaEntityShadow.valid then
@@ -269,7 +269,7 @@ function Santa.NotValidEntityOccured()
 end
 
 function Santa.CreateWheelSparks(santaEntityPosition)
-    local santaGroup = MOD.SantaGroup
+    local santaGroup = global.SantaGroup
     local wheelGroundSpots = {
         {
             x = santaEntityPosition.x - 0.9,
@@ -294,7 +294,7 @@ function Santa.CreateWheelSparks(santaEntityPosition)
 end
 
 function Santa.CreateFlyingBiterSmoke(santaEntityPosition)
-    local santaGroup = MOD.SantaGroup
+    local santaGroup = global.SantaGroup
     local topBiterRowYPos = santaEntityPosition.y + 0.2
     local bottomBiterRowYPos = santaEntityPosition.y + 0.9
     local biterSmokeSpotsXPos = {
@@ -327,7 +327,7 @@ function Santa.CreateFlyingBiterSmoke(santaEntityPosition)
 end
 
 function Santa.MoveSantaEntity(santaEntityPos, height)
-    local santaGroup = MOD.SantaGroup
+    local santaGroup = global.SantaGroup
     if height == nil then
         height = 0
     end
@@ -339,7 +339,7 @@ function Santa.MoveSantaEntity(santaEntityPos, height)
 end
 
 function Santa.TakeOff()
-    local santaGroup = MOD.SantaGroup
+    local santaGroup = global.SantaGroup
     if santaGroup.takeoffMode == "rolling" then
         santaGroup.state = SantaStates.taking_off_ground
         santaGroup.stateIteration = #santaGroup.groundSlowdownPattern
@@ -405,7 +405,7 @@ function Santa.CalculateVTOTakeoffDistance(vtoClimbPattern)
 end
 
 function Santa.CreateVTOFlames(santaEntityPosition)
-    local santaGroup = MOD.SantaGroup
+    local santaGroup = global.SantaGroup
     local flamePos1 = {
         x = santaEntityPosition.x - 1.5,
         y = santaEntityPosition.y + 2.1
@@ -419,7 +419,7 @@ function Santa.CreateVTOFlames(santaEntityPosition)
 end
 
 function Santa.GeneratePhaseInOutSmokeTickIteration(santaGroupPosition)
-    local santaGroup = MOD.SantaGroup
+    local santaGroup = global.SantaGroup
     if santaGroup.phaseInSmokeIteration <= 60 then
         if santaGroup.phaseInSmokeIteration % 6 == 0 then
             santaGroup.nextStateTick = game.tick + 180
@@ -434,7 +434,7 @@ function Santa.GeneratePhaseInOutSmokeTickIteration(santaGroupPosition)
 end
 
 function Santa.CreatePhaseInOutSmoke(santaEntityPosition)
-    local santaGroup = MOD.SantaGroup
+    local santaGroup = global.SantaGroup
     santaGroup.surface.create_trivial_smoke {name = "santa-biter-transition-smoke-massive", position = {x = santaEntityPosition.x, y = santaEntityPosition.y}}
 end
 

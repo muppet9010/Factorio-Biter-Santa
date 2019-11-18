@@ -1,52 +1,26 @@
---[[
-	MOD = {
-		Log(text) - control.lua
-		SantaGroup - santa.lua > Santa.CreateSanta()
-	}
-]]
-
-
-
 local Santa = require("scripts/santa")
 local SantaManager = require("scripts/santa_manager")
 
-
-
 local RegisterCommands = function()
-	commands.remove_command("call-santa")
-	commands.add_command("call-santa", {"api-description.call-santa"}, Santa.CallSantaCommand)
-	commands.remove_command("dismiss-santa")
-	commands.add_command("dismiss-santa", {"api-description.dismiss-santa"}, Santa.DismissSantaCommand)
-	commands.remove_command("delete-santa")
-	commands.add_command("delete-santa", {"api-description.delete-santa"}, Santa.DeleteSantaCommand)
-end
-
-local CreateGlobals = function()
-	if global.MOD == nil then global.MOD = {} end
-end
-
-local ReferenceGlobals = function()
-	MOD = global.MOD
+    commands.remove_command("call-santa")
+    commands.add_command("call-santa", {"api-description.call-santa"}, Santa.CallSantaCommand)
+    commands.remove_command("dismiss-santa")
+    commands.add_command("dismiss-santa", {"api-description.dismiss-santa"}, Santa.DismissSantaCommand)
+    commands.remove_command("delete-santa")
+    commands.add_command("delete-santa", {"api-description.delete-santa"}, Santa.DeleteSantaCommand)
 end
 
 local OnStartup = function()
-	CreateGlobals()
-	ReferenceGlobals()
-	RegisterCommands()
+    RegisterCommands()
 end
 
 local OnLoad = function()
-	ReferenceGlobals()
-	RegisterCommands()
+    RegisterCommands()
 end
 
 local OnTick = function()
-	SantaManager.OnTick()
+    SantaManager.OnTick()
 end
-
-
-
-
 
 script.on_init(OnStartup)
 script.on_load(OnLoad)
