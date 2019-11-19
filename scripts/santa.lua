@@ -134,8 +134,41 @@ Santa.SpawnSantaEntity = function(creationPos)
     end
     Santa.RemoveSantaEntity()
     santaGroup.santaEntity = santaGroup.surface.create_entity {name = entityName, position = creationPos, direction = defines.direction.east, force = "neutral"}
+    if santaGroup.state == SantaStates.landed then
+        Santa.AddContentsToSanta()
+    end
     santaGroup.santaEntity.destructible = false
     Santa.CreateSantaEntityShadow(height)
+end
+
+Santa.AddContentsToSanta = function()
+    local contentsString = settings.global["santa-inventory-contents"].value
+    local santaHasInventory = settings.startup["santa-has-inventory"].value
+    if contentsString == nil or contentsString == "" then
+        return
+    end
+    if santaHasInventory ~= true then
+        Logging.LogPrint("Error: Biter Santa has contents set, but inventory isn't enabled")
+        return
+    end
+    local contents = game.json_to_table(contentsString)
+    if contents == nil then
+        Logging.LogPrint("Error: Biter Santa inventory has invalid contents setting: " .. tostring(contentsString))
+        return
+    end
+
+    for _, content in pairs(contents) do
+        local itemName, quantity = content.name, content.quantity
+        if game.item_prototypes[itemName] == nil then
+            Logging.LogPrint("Error: Biter Santa inventory invalid content item: " .. tostring(itemName))
+            return
+        elseif type(quantity) ~= "number" or quantity < 0 then
+            Logging.LogPrint("Error: Biter Santa inventory invalid content item count for '" .. itemName .. "': " .. tostring(quantity))
+            return
+        else
+            global.SantaGroup.santaEntity.insert({name = itemName, count = quantity})
+        end
+    end
 end
 
 Santa.CreateSantaEntityShadow = function(height)
