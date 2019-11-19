@@ -1,8 +1,9 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.1.2
-Date: 2019-XX-XX
+Version: 17.1.2
+Date: 2019-11-19
   Features:
     - Update to .17
+    - Santa has a toggleable and configurable inventory
   Changes:
     - Only an admin can issue Santa commands
   Bugfixes:
