@@ -16,6 +16,8 @@ Features
 - Options for Santa to use Vertical Take Off or a horizontal runway take off to depart.
 - Configurable start, landing and disappearing position through the clouds.
 - Configurable santa status messages.
+- Santa is indestructible and cannot be interacted with in any way other than the commands.
+- Santa can optionally have a configurable inventory of presents and can then be clicked on to take the presents.
 
 Commands
 -------
@@ -30,6 +32,7 @@ Example Ingame
 Calling Santa to the wrong spot on the map can be a little problematic.
 Arriving: https://www.twitch.tv/jd_play5/clip/ShyEnchantingBaboonPunchTrees
 Explosive Departure: https://www.twitch.tv/jd_play5/clip/FaithfulPiercingStarLeeroyJenkins
+
 
 Notes
 -----
