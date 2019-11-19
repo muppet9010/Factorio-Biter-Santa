@@ -15,13 +15,12 @@ Date: 2019-11-19
 Version: 0.1.1
 Date: 2019-01-01
   Bugfixes:
-	- Departing smoke could generate too late to completely hide santa
+    - Departing smoke could generate too late to completely hide santa
   Info:
-	- Tidy up codebase comments and documentation for publication
-
+    - Tidy up codebase comments and documentation for publication
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.0
 Date: 2018-12-30
   Features:
-	- Initial Release
-	- Biter Santa activated on command with static entity graphics
+    - Initial Release
+    - Biter Santa activated on command with static entity graphics
