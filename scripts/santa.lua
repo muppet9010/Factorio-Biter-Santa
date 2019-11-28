@@ -89,6 +89,10 @@ Santa.CreateSantaGroup = function()
         santaEntity = nil,
         santaSpriteId = nil,
         santaShadowSpriteId = nil,
+        vtoFlame1Entity = nil,
+        vtoFlame2Entity = nil,
+        vtoFlame1AnimationId = nil,
+        vtoFlame2AnimationId = nil,
         surface = surface,
         state = SantaStates.pre_spawning,
         currentPos = spawnPos,
@@ -375,7 +379,7 @@ Santa.CreateFlyingBiterSmoke = function(santaEntityPosition)
     end
 end
 
-Santa.MoveSantaEntity = function(santaEntityPos, height)
+Santa.MoveSantaEntity = function(santaEntityPos, height, noSmoke)
     local santaGroup = global.SantaGroup
     if height == nil then
         height = 0
@@ -385,10 +389,13 @@ Santa.MoveSantaEntity = function(santaEntityPos, height)
     elseif santaGroup.santaSpriteId ~= nil and rendering.is_valid(santaGroup.santaSpriteId) then
         rendering.set_target(santaGroup.santaSpriteId, santaEntityPos)
     end
-    if height > 0 then
+    if height > 0 and not noSmoke then
         Santa.CreateFlyingBiterSmoke(santaEntityPos)
     end
     rendering.set_target(santaGroup.santaShadowSpriteId, Santa.CalculateShadowSantaPosition(height))
+    if santaGroup.vtoFlame1Entity ~= nil or santaGroup.vtoFlame1AnimationId ~= nil then
+        Santa.MoveVTOFlames(santaEntityPos)
+    end
 end
 
 Santa.TakeOff = function()
@@ -399,6 +406,7 @@ Santa.TakeOff = function()
     elseif santaGroup.takeoffMode == "vto" then
         santaGroup.state = SantaStates.vto_up_near_ground
         santaGroup.stateIteration = 1
+        Santa.CreateVTOFlameEntities(santaGroup.landedPos)
     end
     Santa.SpawnSantaEntity(santaGroup.landedPos)
 end
@@ -453,18 +461,59 @@ Santa.CalculateVTOTakeoffDistance = function(vtoClimbPattern)
     return vtoTakeoffDistance
 end
 
-Santa.CreateVTOFlames = function(santaEntityPosition)
+Santa.CreateVTOFlameEntities = function(santaEntityPosition)
+    local santaGroup = global.SantaGroup
+    santaGroup.vtoFlame1Entity = santaGroup.surface.create_entity {name = "santa_biter_vto_flame", position = santaEntityPosition, force = "neutral"}
+    santaGroup.vtoFlame1Entity.destructible = false
+    santaGroup.vtoFlame2Entity = santaGroup.surface.create_entity {name = "santa_biter_vto_flame", position = santaEntityPosition, force = "neutral"}
+    santaGroup.vtoFlame2Entity.destructible = false
+    Santa.MoveVTOFlames(santaEntityPosition)
+end
+
+Santa.MoveVTOFlames = function(santaEntityPosition)
     local santaGroup = global.SantaGroup
     local flamePos1 = {
         x = santaEntityPosition.x - 1.5,
         y = santaEntityPosition.y + 2.1
     }
-    santaGroup.surface.create_trivial_smoke {name = "santa_biter_vto_flame", position = flamePos1}
     local flamePos2 = {
         x = santaEntityPosition.x - 5.6,
         y = santaEntityPosition.y + 2.1
     }
-    santaGroup.surface.create_trivial_smoke {name = "santa_biter_vto_flame", position = flamePos2}
+    if santaGroup.vtoFlame1Entity ~= nil then
+        santaGroup.vtoFlame1Entity.teleport(flamePos1)
+        santaGroup.vtoFlame2Entity.teleport(flamePos2)
+    elseif santaGroup.vtoFlame1AnimationId ~= nil then
+        rendering.set_target(santaGroup.vtoFlame1AnimationId, flamePos1)
+        rendering.set_target(santaGroup.vtoFlame2AnimationId, flamePos2)
+    end
+end
+
+Santa.ReplaceVTOFlames = function()
+    local santaGroup = global.SantaGroup
+    santaGroup.vtoFlame1AnimationId = rendering.draw_animation {animation = "santa_biter_vto_flame", render_layer = "air-object", target = santaGroup.vtoFlame1Entity.position, surface = santaGroup.surface}
+    santaGroup.vtoFlame2AnimationId = rendering.draw_animation {animation = "santa_biter_vto_flame", render_layer = "air-object", target = santaGroup.vtoFlame2Entity.position, surface = santaGroup.surface}
+    Santa.DestroyVTOFlames()
+end
+
+Santa.DestroyVTOFlames = function()
+    local santaGroup = global.SantaGroup
+    if santaGroup.vtoFlame1Entity ~= nil then
+        santaGroup.vtoFlame1Entity.destroy()
+        santaGroup.vtoFlame1Entity = nil
+        santaGroup.vtoFlame2Entity.destroy()
+        santaGroup.vtoFlame2Entity = nil
+    end
+end
+
+Santa.DestroyVTOFlameAnimations = function()
+    local santaGroup = global.SantaGroup
+    if santaGroup.vtoFlame1AnimationId ~= nil then
+        rendering.destroy(santaGroup.vtoFlame1AnimationId)
+        santaGroup.vtoFlame1AnimationId = nil
+        rendering.destroy(santaGroup.vtoFlame2AnimationId)
+        santaGroup.vtoFlame2AnimationId = nil
+    end
 end
 
 Santa.GeneratePhaseInOutSmokeTickIteration = function(santaGroupPosition)

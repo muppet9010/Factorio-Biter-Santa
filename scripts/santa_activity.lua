@@ -174,8 +174,7 @@ SantaActivity.VTOUp = function()
         x = santaGroup.currentPos.x,
         y = santaGroup.currentPos.y - height
     }
-    Santa.MoveSantaEntity(santaEntityPos, height)
-    Santa.CreateVTOFlames(santaEntityPos)
+    Santa.MoveSantaEntity(santaEntityPos, height, true)
     if santaGroup.state == SantaStates.vto_up_near_ground and height >= santaGroup.groundEntitySpriteHeight then
         santaGroup.state = SantaStates.vto_up
         Santa.SpawnSantaEntity(santaEntityPos, height)
@@ -186,6 +185,7 @@ SantaActivity.VTOUp = function()
     if santaGroup.stateIteration > #santaGroup.vtoUpPattern then
         santaGroup.state = SantaStates.vto_climb
         Santa.SpawnSantaEntity(santaEntityPos, height)
+        Santa.ReplaceVTOFlames()
         santaGroup.stateIteration = 1
     end
 end
@@ -208,10 +208,13 @@ SantaActivity.VTOClimb = function()
         x = santaGroup.currentPos.x,
         y = santaGroup.currentPos.y - height
     }
-    Santa.MoveSantaEntity(santaEntityPos, height)
+    local noSmoke = false
     if height < (santaGroup.flyingHeightTiles * 0.75) then
-        Santa.CreateVTOFlames(santaEntityPos)
+        noSmoke = true
+    else
+        Santa.DestroyVTOFlameAnimations()
     end
+    Santa.MoveSantaEntity(santaEntityPos, height, noSmoke)
     if santaGroup.stateIteration > #santaGroup.vtoClimbPattern then
         santaGroup.state = SantaStates.departing
         santaGroup.stateIteration = 1

@@ -56,6 +56,35 @@ local santaShadowSprite = {
 }
 data:extend({santaLanded, santaFlying, santaFlyingSprite, santaShadowSprite})
 
+local santaVTOFlame = {
+    type = "simple-entity",
+    name = "santa_biter_vto_flame",
+    animations = {
+        filename = "__base__/graphics/entity/rocket-silo/10-rocket-under/jet-flame.png",
+        width = 88,
+        height = 132,
+        frame_count = 8,
+        line_length = 8,
+        animation_speed = 0.5,
+        scale = 0.75
+    },
+    render_layer = santaFlying.render_layer,
+    flags = {"not-rotatable", "placeable-off-grid", "not-blueprintable", "not-deconstructable", "not-flammable"},
+    collision_mask = {},
+    selectable_in_game = false
+}
+local santaVTOFlameAnimation = {
+    type = "animation",
+    name = "santa_biter_vto_flame",
+    filename = santaVTOFlame.animations.filename,
+    height = santaVTOFlame.animations.height,
+    width = santaVTOFlame.animations.width,
+    frame_count = santaVTOFlame.animations.frame_count,
+    line_length = santaVTOFlame.animations.line_length,
+    animation_speed = santaVTOFlame.animations.animation_speed,
+    scale = santaVTOFlame.animations.scale
+}
+
 data:extend(
     {
         {
@@ -69,14 +98,13 @@ data:extend(
                 line_length = 19,
                 shift = {-0.109375, 0.3125},
                 tint = {r = 1.0, g = 0.9, b = 0.0, a = 1.0},
-                animation_speed = 0.5,
-                flags = {"smoke"}
+                animation_speed = 0.5
             },
             duration = 24,
             affected_by_wind = false,
             show_when_smoke_off = true,
             movement_slow_down_factor = 1,
-            render_layer = "air-entity-info-icon"
+            render_layer = "higher-object-under"
         },
         {
             type = "trivial-smoke",
@@ -90,32 +118,13 @@ data:extend(
                 line_length = 19,
                 shift = {0.078125, -0.15625},
                 scale = 1,
-                animation_speed = 0.5,
-                flags = {"smoke"}
+                animation_speed = 0.5
             },
             duration = 20,
             affected_by_wind = false,
             show_when_smoke_off = true,
             movement_slow_down_factor = 1,
-            render_layer = "smoke"
-        },
-        {
-            type = "trivial-smoke",
-            name = "santa_biter_vto_flame",
-            animation = {
-                filename = "__base__/graphics/entity/rocket-silo/10-rocket-under/jet-flame.png",
-                width = 88,
-                height = 132,
-                frame_count = 2,
-                line_length = 8,
-                animation_speed = 0.5,
-                scale = 0.75
-            },
-            duration = 1,
-            affected_by_wind = false,
-            show_when_smoke_off = true,
-            movement_slow_down_factor = 1,
-            render_layer = "smoke"
+            render_layer = "higher-object-under"
         },
         {
             type = "trivial-smoke",
@@ -141,6 +150,8 @@ data:extend(
             movement_slow_down_factor = 1,
             render_layer = "air-entity-info-icon",
             cyclic = true
-        }
+        },
+        santaVTOFlame,
+        santaVTOFlameAnimation
     }
 )

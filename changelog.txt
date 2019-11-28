@@ -4,6 +4,8 @@ Date: 2019-11-28
   Features:
   Changes:
   Bugfixes:
+    - Santa should be drawn infront of and behind things when landing correctly now.
+    - Vertical Take Off flame is back
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 17.1.2
