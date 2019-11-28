@@ -1,5 +1,5 @@
 local Santa = {}
-local SantaStates = require("scripts/santa_state")
+local SantaStates = require("scripts/santa_states")
 local Logging = require("utility/logging")
 local Utils = require("utility/utils")
 local Commands = require("utility/commands")

@@ -1,51 +1,51 @@
-local SantaManager = {}
+local SantaActivity = {}
 local Santa = require("scripts/santa")
-local SantaStates = require("scripts/santa_state")
+local SantaStates = require("scripts/santa_states")
 local Logging = require("utility/logging")
 local Constants = require("constants")
 local Utils = require("utility/utils")
 local Events = require("utility/events")
 local debug = false
 
-function SantaManager.OnLoad()
-    Events.RegisterHandler(defines.events.on_tick, "SantaManager", SantaManager.OnTick)
+function SantaActivity.OnLoad()
+    Events.RegisterHandler(defines.events.on_tick, "SantaActivity", SantaActivity.OnTick)
 end
 
-SantaManager.OnTick = function()
+SantaActivity.OnTick = function()
     local santaGroup = global.SantaGroup
     if santaGroup == nil then
         return
     end
-    Logging.Log("SantaManager.OnTick() state: " .. santaGroup.state, debug)
+    Logging.Log("SantaActivity.OnTick() state: " .. santaGroup.state, debug)
 
     if santaGroup.state == SantaStates.pre_spawning then
-        SantaManager.PreSpawning()
+        SantaActivity.PreSpawning()
     elseif santaGroup.state == SantaStates.spawning then
-        SantaManager.Spawning()
+        SantaActivity.Spawning()
     elseif santaGroup.state == SantaStates.arriving then
-        SantaManager.Arriving()
+        SantaActivity.Arriving()
     elseif santaGroup.state == SantaStates.landing_air then
-        SantaManager.LandingAir()
+        SantaActivity.LandingAir()
     elseif santaGroup.state == SantaStates.landing_ground then
-        SantaManager.LandingGround()
+        SantaActivity.LandingGround()
     elseif santaGroup.state == SantaStates.landed then
-        SantaManager.Landed()
+        SantaActivity.Landed()
     elseif santaGroup.state == SantaStates.vto_up then
-        SantaManager.VTOUp()
+        SantaActivity.VTOUp()
     elseif santaGroup.state == SantaStates.vto_climb then
-        SantaManager.VTOClimb()
+        SantaActivity.VTOClimb()
     elseif santaGroup.state == SantaStates.taking_off_ground then
-        SantaManager.TakingOffGround()
+        SantaActivity.TakingOffGround()
     elseif santaGroup.state == SantaStates.taking_off_air then
-        SantaManager.TakingOffAir(0)
+        SantaActivity.TakingOffAir(0)
     elseif santaGroup.state == SantaStates.departing then
-        SantaManager.Departing()
+        SantaActivity.Departing()
     elseif santaGroup.state == SantaStates.disappearing then
-        SantaManager.Disappearing()
+        SantaActivity.Disappearing()
     end
 end
 
-SantaManager.PreSpawning = function()
+SantaActivity.PreSpawning = function()
     local santaGroup = global.SantaGroup
     Santa.GeneratePhaseInOutSmokeTickIteration(santaGroup.spawnPos)
     if santaGroup.nextStateTick ~= nil and game.tick >= santaGroup.nextStateTick then
@@ -55,7 +55,7 @@ SantaManager.PreSpawning = function()
     end
 end
 
-SantaManager.Spawning = function()
+SantaActivity.Spawning = function()
     local santaGroup = global.SantaGroup
     local santaEntityPos = {
         x = santaGroup.currentPos.x,
@@ -69,7 +69,7 @@ SantaManager.Spawning = function()
     end
 end
 
-SantaManager.Arriving = function()
+SantaActivity.Arriving = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -91,7 +91,7 @@ SantaManager.Arriving = function()
     end
 end
 
-SantaManager.LandingAir = function()
+SantaActivity.LandingAir = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -120,7 +120,7 @@ SantaManager.LandingAir = function()
     end
 end
 
-SantaManager.LandingGround = function()
+SantaActivity.LandingGround = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -150,7 +150,7 @@ SantaManager.LandingGround = function()
     end
 end
 
-SantaManager.Landed = function()
+SantaActivity.Landed = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -158,7 +158,7 @@ SantaManager.Landed = function()
     santaGroup.phaseInSmokeIteration = 1
 end
 
-SantaManager.VTOUp = function()
+SantaActivity.VTOUp = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -181,7 +181,7 @@ SantaManager.VTOUp = function()
     end
 end
 
-SantaManager.VTOClimb = function()
+SantaActivity.VTOClimb = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -209,7 +209,7 @@ SantaManager.VTOClimb = function()
     end
 end
 
-SantaManager.TakingOffGround = function()
+SantaActivity.TakingOffGround = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -230,7 +230,7 @@ SantaManager.TakingOffGround = function()
     end
 end
 
-SantaManager.TakingOffAir = function()
+SantaActivity.TakingOffAir = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -260,7 +260,7 @@ SantaManager.TakingOffAir = function()
     end
 end
 
-SantaManager.Departing = function()
+SantaActivity.Departing = function()
     local santaGroup = global.SantaGroup
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
@@ -286,11 +286,11 @@ SantaManager.Departing = function()
     end
 end
 
-SantaManager.Disappearing = function()
+SantaActivity.Disappearing = function()
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
     end
     Santa.DeleteSanta()
 end
 
-return SantaManager
+return SantaActivity

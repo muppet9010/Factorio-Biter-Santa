@@ -1,10 +1,10 @@
 local Santa = require("scripts/santa")
-local SantaManager = require("scripts/santa_manager")
+local SantaActivity = require("scripts/santa_activity")
 local Events = require("utility/events")
 
 local OnLoad = function()
     Santa.OnLoad()
-    SantaManager.OnLoad()
+    SantaActivity.OnLoad()
 end
 
 local OnStartup = function()
