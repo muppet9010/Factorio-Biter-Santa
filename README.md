@@ -34,6 +34,11 @@ Arriving: https://www.twitch.tv/jd_play5/clip/ShyEnchantingBaboonPunchTrees
 Explosive Departure: https://www.twitch.tv/jd_play5/clip/FaithfulPiercingStarLeeroyJenkins
 
 
+Upgrading
+---------
+Maps using version 17.1.2 or below must fully dismiss Santa before upgrading. Version 17.1.3 will not affect any older Santa elements in the map. Given the mods usage pattern this shouldn't be an issue.
+
+
 Notes
 -----
 

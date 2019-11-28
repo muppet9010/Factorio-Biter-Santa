@@ -2,7 +2,7 @@ local Constants = require("constants")
 
 local santaLanded = {
     type = "container",
-    name = "biter-santa-landed",
+    name = "biter_santa_landed",
     picture = {
         filename = Constants.GraphicsModName .. "/graphics/entity/biter santa wagon - giant spitter.png",
         height = "266",
@@ -13,7 +13,7 @@ local santaLanded = {
     },
     flags = {"not-rotatable", "placeable-off-grid", "not-blueprintable", "not-deconstructable", "not-flammable"},
     render_layer = "object",
-    collision_box = {{-7, -1}, {7, 1}},
+    collision_box = {{-7, -1.5}, {7, 1.5}},
     collision_mask = {"object-layer", "player-layer"},
     selection_box = {{-7, -1}, {7, 1}},
     selectable_in_game = false,
@@ -26,36 +26,41 @@ if settings.startup["santa-has-inventory"].value == true then
 end
 
 local santaFlying = table.deepcopy(santaLanded)
-santaFlying.name = "biter-santa-flying"
-santaFlying.render_layer = "air-object"
+santaFlying.type = "simple-entity"
+santaFlying.name = "biter_santa_flying"
 santaFlying.collision_mask = {}
 santaFlying.selectable_in_game = false
 
-local santaShadow = {
-    type = "simple-entity",
-    name = "biter-santa-shadow",
-    picture = {
-        filename = Constants.GraphicsModName .. "/graphics/entity/biter santa wagon - giant spitter-shadow.png",
-        height = "266",
-        width = "954",
-        scale = 0.5,
-        shift = {0.1, -0.75},
-        priority = "extra-high",
-        draw_as_shadow = true,
-        flags = {"shadow"}
-    },
-    flags = {"not-rotatable", "placeable-off-grid", "not-blueprintable", "not-deconstructable", "not-flammable", "not-on-map"},
-    render_layer = "smoke",
-    selectable_in_game = false,
-    collision_mask = {}
+local santaFlyingSprite = {
+    type = "sprite",
+    name = "biter_santa_flying",
+    filename = santaLanded.picture.filename,
+    height = santaLanded.picture.height,
+    width = santaLanded.picture.width,
+    scale = santaLanded.picture.scale,
+    shift = santaLanded.picture.shift,
+    priority = santaLanded.picture.priority
 }
-data:extend({santaLanded, santaFlying, santaShadow})
+
+local santaShadowSprite = {
+    type = "sprite",
+    name = "biter_santa_shadow",
+    filename = Constants.GraphicsModName .. "/graphics/entity/biter santa wagon - giant spitter-shadow.png",
+    height = "266",
+    width = "954",
+    scale = 0.5,
+    shift = {0.1, -0.75},
+    priority = "extra-high",
+    draw_as_shadow = true,
+    flags = {"shadow"}
+}
+data:extend({santaLanded, santaFlying, santaFlyingSprite, santaShadowSprite})
 
 data:extend(
     {
         {
             type = "trivial-smoke",
-            name = "santa-wheel-sparks",
+            name = "santa_wheel_sparks",
             animation = {
                 filename = "__base__/graphics/entity/sparks/sparks-01.png",
                 width = 39,
@@ -75,7 +80,7 @@ data:extend(
         },
         {
             type = "trivial-smoke",
-            name = "santa-biter-air-smoke",
+            name = "santa_biter_air_smoke",
             animation = {
                 filename = Constants.GraphicsModName .. "/graphics/entity/small-smoke-white.png",
                 width = 39,
@@ -96,7 +101,7 @@ data:extend(
         },
         {
             type = "trivial-smoke",
-            name = "santa-biter-vto-flame",
+            name = "santa_biter_vto_flame",
             animation = {
                 filename = "__base__/graphics/entity/rocket-silo/10-rocket-under/jet-flame.png",
                 width = 88,
@@ -114,7 +119,7 @@ data:extend(
         },
         {
             type = "trivial-smoke",
-            name = "santa-biter-transition-smoke-massive",
+            name = "santa_biter_transition_smoke_massive",
             animation = {
                 filename = Constants.GraphicsModName .. "/graphics/entity/large-smoke-white.png",
                 width = 152,

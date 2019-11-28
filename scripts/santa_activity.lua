@@ -24,20 +24,20 @@ SantaActivity.OnTick = function()
         SantaActivity.Spawning()
     elseif santaGroup.state == SantaStates.arriving then
         SantaActivity.Arriving()
-    elseif santaGroup.state == SantaStates.landing_air then
+    elseif santaGroup.state == SantaStates.landing_air or santaGroup.state == SantaStates.landing_air_near_ground then
         SantaActivity.LandingAir()
     elseif santaGroup.state == SantaStates.landing_ground then
         SantaActivity.LandingGround()
     elseif santaGroup.state == SantaStates.landed then
         SantaActivity.Landed()
-    elseif santaGroup.state == SantaStates.vto_up then
+    elseif santaGroup.state == SantaStates.vto_up or santaGroup.state == SantaStates.vto_up_near_ground then
         SantaActivity.VTOUp()
     elseif santaGroup.state == SantaStates.vto_climb then
         SantaActivity.VTOClimb()
     elseif santaGroup.state == SantaStates.taking_off_ground then
         SantaActivity.TakingOffGround()
-    elseif santaGroup.state == SantaStates.taking_off_air then
-        SantaActivity.TakingOffAir(0)
+    elseif santaGroup.state == SantaStates.taking_off_air or santaGroup.state == SantaStates.taking_off_air_near_ground then
+        SantaActivity.TakingOffAir()
     elseif santaGroup.state == SantaStates.departing then
         SantaActivity.Departing()
     elseif santaGroup.state == SantaStates.disappearing then
@@ -111,7 +111,11 @@ SantaActivity.LandingAir = function()
         y = santaGroup.currentPos.y - height
     }
     Santa.MoveSantaEntity(santaEntityPos, height)
-    if height < santaGroup.groundDamageHeight then
+    if santaGroup.state == SantaStates.landing_air and height <= santaGroup.groundEntitySpriteHeight then
+        santaGroup.state = SantaStates.landing_air_near_ground
+        Santa.SpawnSantaEntity(santaEntityPos, height)
+    end
+    if height <= santaGroup.groundDamageHeight then
         Utils.KillAllKillableObjectsInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity, true)
     end
     if santaGroup.stateIteration > #santaGroup.descentPattern then
@@ -172,11 +176,16 @@ SantaActivity.VTOUp = function()
     }
     Santa.MoveSantaEntity(santaEntityPos, height)
     Santa.CreateVTOFlames(santaEntityPos)
-    if height < santaGroup.groundDamageHeight then
+    if santaGroup.state == SantaStates.vto_up_near_ground and height >= santaGroup.groundEntitySpriteHeight then
+        santaGroup.state = SantaStates.vto_up
+        Santa.SpawnSantaEntity(santaEntityPos, height)
+    end
+    if height <= santaGroup.groundDamageHeight then
         Utils.KillAllKillableObjectsInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity, true)
     end
     if santaGroup.stateIteration > #santaGroup.vtoUpPattern then
         santaGroup.state = SantaStates.vto_climb
+        Santa.SpawnSantaEntity(santaEntityPos, height)
         santaGroup.stateIteration = 1
     end
 end
@@ -225,7 +234,7 @@ SantaActivity.TakingOffGround = function()
     Santa.MoveSantaEntity(santaEntityPos)
     Utils.KillAllKillableObjectsInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity, true)
     if santaGroup.stateIteration == 0 then
-        santaGroup.state = SantaStates.taking_off_air
+        santaGroup.state = SantaStates.taking_off_air_near_ground
         santaGroup.stateIteration = #santaGroup.descentPattern
     end
 end
@@ -248,7 +257,11 @@ SantaActivity.TakingOffAir = function()
         y = santaGroup.currentPos.y - height
     }
     Santa.MoveSantaEntity(santaEntityPos, height)
-    if height < santaGroup.groundDamageHeight then
+    if santaGroup.state == SantaStates.taking_off_air_near_ground and height >= santaGroup.groundEntitySpriteHeight then
+        santaGroup.state = SantaStates.taking_off_air
+        Santa.SpawnSantaEntity(santaEntityPos, height)
+    end
+    if height <= santaGroup.groundDamageHeight then
         Utils.KillAllKillableObjectsInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity, true)
     end
     if santaGroup.phaseInSmokeIteration <= 60 and Utils.FuzzyCompareDoubles(santaGroup.currentPos.x, ">=", santaGroup.phaseOutSmokeTriggerXPos) then
