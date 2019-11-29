@@ -1,12 +1,10 @@
 # Factorio-Biter-Santa
 Adds a flying biter santa and sleigh that can be called in by command, will land and then can be dismissed by command to fly away.
 
-Landing
-![Runway Landing](https://media.giphy.com/media/1wnG8v2fBMCwBFBw7r/giphy.gif)
-Runway Takeoff
-![Runway Takeoff](https://media.giphy.com/media/1lBjzcFdfvsZBV9VTP/giphy.gif)
-Vertical Takeoff
-![Vertical Taekoff](https://media.giphy.com/media/edP0YOKFz4bCQJa8Zy/giphy.gif)
+Landing:
+![Laninding](https://thumbs.gfycat.com/UnimportantAlarmingHarborporpoise.webp)
+Vertical Takeoff option:
+![Vertical Taekoff](https://thumbs.gfycat.com/BlindAntiqueApe.webp)
 
 Features
 -------

@@ -388,7 +388,6 @@ Santa.MoveSantaEntity = function(santaEntityPos, height, noSmoke)
     elseif santaGroup.santaSpriteId ~= nil and rendering.is_valid(santaGroup.santaSpriteId) then
         rendering.set_target(santaGroup.santaSpriteId, santaEntityPos)
     end
-    game.print(santaGroup.speed)
     if not noSmoke and height > 0 and santaGroup.speed >= santaGroup.smokeMinSpeed then
         Santa.CreateFlyingBiterSmoke(santaEntityPos)
     end
