@@ -1,12 +1,10 @@
 # Factorio-Biter-Santa
 Adds a flying biter santa and sleigh that can be called in by command, will land and then can be dismissed by command to fly away.
 
-Landing
-![Runway Landing](https://media.giphy.com/media/1wnG8v2fBMCwBFBw7r/giphy.gif)
-Runway Takeoff
-![Runway Takeoff](https://media.giphy.com/media/1lBjzcFdfvsZBV9VTP/giphy.gif)
-Vertical Takeoff
-![Vertical Taekoff](https://media.giphy.com/media/edP0YOKFz4bCQJa8Zy/giphy.gif)
+Landing:
+![Laninding](https://thumbs.gfycat.com/UnimportantAlarmingHarborporpoise.webp)
+Vertical Takeoff option:
+![Vertical Taekoff](https://thumbs.gfycat.com/BlindAntiqueApe.webp)
 
 Features
 -------
@@ -34,9 +32,13 @@ Arriving: https://www.twitch.tv/jd_play5/clip/ShyEnchantingBaboonPunchTrees
 Explosive Departure: https://www.twitch.tv/jd_play5/clip/FaithfulPiercingStarLeeroyJenkins
 
 
+Upgrading
+---------
+Maps using version 17.1.2 or below must fully dismiss Santa before upgrading. Version 17.1.3 will not affect any older Santa elements in the map. Given the mods usage pattern this shouldn't be an issue.
+
+
 Notes
 -----
 
-- Some of the graphics and effects are a bit rough, this is my first exploration in this. Future may include animated biters.
 - Best used during the day as no lights are included on santa. This is as I can't make lights on santa affect only it and not the buildings behind it due to Factorios 2D view of height.
 - All mod settings are cached for santa when called in to avoid weird situations. So set everything up first.

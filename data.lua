@@ -2,20 +2,20 @@ local Constants = require("constants")
 
 local santaLanded = {
     type = "container",
-    name = "biter-santa-landed",
+    name = "biter_santa_landed",
     picture = {
-        filename = Constants.GraphicsModName .. "/graphics/entity/biter santa wagon - giant spitter.png",
-        height = "266",
-        width = "954",
+        filename = Constants.GraphicsModName .. "/graphics/entity/biter-santa-wagon.png",
+        height = "270",
+        width = "1171",
         scale = 0.5,
-        shift = {0.1, -0.75},
+        shift = {0.25, -0.5},
         priority = "extra-high"
     },
     flags = {"not-rotatable", "placeable-off-grid", "not-blueprintable", "not-deconstructable", "not-flammable"},
     render_layer = "object",
-    collision_box = {{-7, -1}, {7, 1}},
+    collision_box = {{-8.5, -1.25}, {8.5, 1.25}},
     collision_mask = {"object-layer", "player-layer"},
-    selection_box = {{-7, -1}, {7, 1}},
+    selection_box = {{-9, -1.5}, {9, 1.5}},
     selectable_in_game = false,
     map_color = {r = 1, g = 0, b = 0, a = 1},
     inventory_size = 100,
@@ -26,36 +26,70 @@ if settings.startup["santa-has-inventory"].value == true then
 end
 
 local santaFlying = table.deepcopy(santaLanded)
-santaFlying.name = "biter-santa-flying"
-santaFlying.render_layer = "air-object"
+santaFlying.type = "simple-entity"
+santaFlying.name = "biter_santa_flying"
 santaFlying.collision_mask = {}
 santaFlying.selectable_in_game = false
 
-local santaShadow = {
-    type = "simple-entity",
-    name = "biter-santa-shadow",
-    picture = {
-        filename = Constants.GraphicsModName .. "/graphics/entity/biter santa wagon - giant spitter-shadow.png",
-        height = "266",
-        width = "954",
-        scale = 0.5,
-        shift = {0.1, -0.75},
-        priority = "extra-high",
-        draw_as_shadow = true,
-        flags = {"shadow"}
-    },
-    flags = {"not-rotatable", "placeable-off-grid", "not-blueprintable", "not-deconstructable", "not-flammable", "not-on-map"},
-    render_layer = "smoke",
-    selectable_in_game = false,
-    collision_mask = {}
+local santaFlyingSprite = {
+    type = "sprite",
+    name = "biter_santa_flying",
+    filename = santaLanded.picture.filename,
+    height = santaLanded.picture.height,
+    width = santaLanded.picture.width,
+    scale = santaLanded.picture.scale,
+    shift = santaLanded.picture.shift,
+    priority = santaLanded.picture.priority
 }
-data:extend({santaLanded, santaFlying, santaShadow})
+
+local santaShadowSprite = {
+    type = "sprite",
+    name = "biter_santa_shadow",
+    filename = Constants.GraphicsModName .. "/graphics/entity/biter-santa-wagon-shadow.png",
+    height = santaLanded.picture.height,
+    width = santaLanded.picture.width,
+    scale = santaLanded.picture.scale,
+    shift = santaLanded.picture.shift,
+    priority = "extra-high",
+    draw_as_shadow = true,
+    flags = {"shadow"}
+}
+data:extend({santaLanded, santaFlying, santaFlyingSprite, santaShadowSprite})
+
+local santaVTOFlame = {
+    type = "simple-entity",
+    name = "santa_biter_vto_flame",
+    animations = {
+        filename = "__base__/graphics/entity/rocket-silo/10-rocket-under/jet-flame.png",
+        width = 88,
+        height = 132,
+        frame_count = 8,
+        line_length = 8,
+        animation_speed = 0.5,
+        scale = 0.75
+    },
+    render_layer = santaFlying.render_layer,
+    flags = {"not-rotatable", "placeable-off-grid", "not-blueprintable", "not-deconstructable", "not-flammable"},
+    collision_mask = {},
+    selectable_in_game = false
+}
+local santaVTOFlameAnimation = {
+    type = "animation",
+    name = "santa_biter_vto_flame",
+    filename = santaVTOFlame.animations.filename,
+    height = santaVTOFlame.animations.height,
+    width = santaVTOFlame.animations.width,
+    frame_count = santaVTOFlame.animations.frame_count,
+    line_length = santaVTOFlame.animations.line_length,
+    animation_speed = santaVTOFlame.animations.animation_speed,
+    scale = santaVTOFlame.animations.scale
+}
 
 data:extend(
     {
         {
             type = "trivial-smoke",
-            name = "santa-wheel-sparks",
+            name = "santa_wheel_sparks",
             animation = {
                 filename = "__base__/graphics/entity/sparks/sparks-01.png",
                 width = 39,
@@ -64,18 +98,17 @@ data:extend(
                 line_length = 19,
                 shift = {-0.109375, 0.3125},
                 tint = {r = 1.0, g = 0.9, b = 0.0, a = 1.0},
-                animation_speed = 0.5,
-                flags = {"smoke"}
+                animation_speed = 0.5
             },
             duration = 24,
             affected_by_wind = false,
             show_when_smoke_off = true,
             movement_slow_down_factor = 1,
-            render_layer = "air-entity-info-icon"
+            render_layer = "higher-object-under"
         },
         {
             type = "trivial-smoke",
-            name = "santa-biter-air-smoke",
+            name = "santa_biter_air_smoke",
             animation = {
                 filename = Constants.GraphicsModName .. "/graphics/entity/small-smoke-white.png",
                 width = 39,
@@ -92,29 +125,11 @@ data:extend(
             affected_by_wind = false,
             show_when_smoke_off = true,
             movement_slow_down_factor = 1,
-            render_layer = "smoke"
+            render_layer = "higher-object-under"
         },
         {
             type = "trivial-smoke",
-            name = "santa-biter-vto-flame",
-            animation = {
-                filename = "__base__/graphics/entity/rocket-silo/10-rocket-under/jet-flame.png",
-                width = 88,
-                height = 132,
-                frame_count = 2,
-                line_length = 8,
-                animation_speed = 0.5,
-                scale = 0.75
-            },
-            duration = 1,
-            affected_by_wind = false,
-            show_when_smoke_off = true,
-            movement_slow_down_factor = 1,
-            render_layer = "smoke"
-        },
-        {
-            type = "trivial-smoke",
-            name = "santa-biter-transition-smoke-massive",
+            name = "santa_biter_transition_smoke_massive",
             animation = {
                 filename = Constants.GraphicsModName .. "/graphics/entity/large-smoke-white.png",
                 width = 152,
@@ -136,6 +151,8 @@ data:extend(
             movement_slow_down_factor = 1,
             render_layer = "air-entity-info-icon",
             cyclic = true
-        }
+        },
+        santaVTOFlame,
+        santaVTOFlameAnimation
     }
 )

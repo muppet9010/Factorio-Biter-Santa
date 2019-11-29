@@ -1,5 +1,5 @@
 local Santa = {}
-local SantaStates = require("scripts/santa_state")
+local SantaStates = require("scripts/santa_states")
 local Logging = require("utility/logging")
 local Utils = require("utility/utils")
 local Commands = require("utility/commands")
@@ -32,7 +32,9 @@ Santa.CreateSantaGroup = function()
     local maxVTOHeightRiseRate = 0.05
     local altitudeChangeDistanceTiles = 80
     local flyingHeightTiles = 10
-    local groundDamageHeight = 2.5
+    local groundDamageHeight = 3
+    local groundEntitySpriteHeight = 2
+    local smokeMinSpeed = 0.35
     local phaseInOutDistance = math.floor(20 / tickMoveSpeed) * tickMoveSpeed
     local landedPos = {
         x = tonumber(settings.global["santa-landed-spot-x"].value),
@@ -86,7 +88,12 @@ Santa.CreateSantaGroup = function()
     global.SantaGroup = {
         nextStateTick = nil,
         santaEntity = nil,
-        santaEntityShadow = nil,
+        santaSpriteId = nil,
+        santaShadowSpriteId = nil,
+        vtoFlame1Entity = nil,
+        vtoFlame2Entity = nil,
+        vtoFlame1AnimationId = nil,
+        vtoFlame2AnimationId = nil,
         surface = surface,
         state = SantaStates.pre_spawning,
         currentPos = spawnPos,
@@ -99,7 +106,8 @@ Santa.CreateSantaGroup = function()
         altitudeChangeDistanceTiles = altitudeChangeDistanceTiles,
         flyingHeightTiles = flyingHeightTiles,
         groundDamageHeight = groundDamageHeight,
-        collisionBox = game.entity_prototypes["biter-santa-landed"].collision_box,
+        groundEntitySpriteHeight = groundEntitySpriteHeight,
+        collisionBox = game.entity_prototypes["biter_santa_landed"].collision_box,
         descendSpeedReducton = descendSpeedReducton,
         descentPattern = descentPattern,
         groundSlowdownPattern = groundSlowdownPattern,
@@ -108,7 +116,9 @@ Santa.CreateSantaGroup = function()
         takeoffMode = takeoffMode,
         vtoUpPattern = vtoUpPattern,
         vtoClimbPattern = vtoClimbPattern,
-        phaseOutSmokeTriggerXPos = phaseOutSmokeTriggerXPos
+        phaseOutSmokeTriggerXPos = phaseOutSmokeTriggerXPos,
+        smokeMinSpeed = smokeMinSpeed,
+        speed = 0
     }
     if debug then
         Logging.LogPrint("Santa Created")
@@ -116,29 +126,34 @@ Santa.CreateSantaGroup = function()
     end
 end
 
-Santa.SpawnSantaEntity = function(creationPos)
+Santa.SpawnSantaEntity = function(creationPos, height)
     local santaGroup = global.SantaGroup
-    local entityName
-    local height
     if santaGroup.state == SantaStates.spawning then
-        entityName = "biter-santa-flying"
+        Santa.RemoveSantaEntity()
         height = santaGroup.flyingHeightTiles
+        santaGroup.santaSpriteId = rendering.draw_sprite {sprite = "biter_santa_flying", render_layer = "air-object", target = creationPos, surface = santaGroup.surface}
+    elseif santaGroup.state == SantaStates.landing_air_near_ground then
+        Santa.RemoveSantaEntity()
+        santaGroup.santaEntity = santaGroup.surface.create_entity {name = "biter_santa_flying", position = creationPos, direction = defines.direction.east, force = "neutral"}
+        santaGroup.santaEntity.destructible = false
     elseif santaGroup.state == SantaStates.landed then
-        entityName = "biter-santa-landed"
+        Santa.RemoveSantaEntity()
         height = 0
-    elseif santaGroup.state == SantaStates.taking_off_ground or santaGroup.state == SantaStates.vto_up then
-        entityName = "biter-santa-flying"
+        santaGroup.santaEntity = santaGroup.surface.create_entity {name = "biter_santa_landed", position = creationPos, direction = defines.direction.east, force = "neutral"}
+        Santa.AddContentsToSanta()
+        santaGroup.santaEntity.destructible = false
+    elseif santaGroup.state == SantaStates.taking_off_ground or santaGroup.state == SantaStates.vto_up_near_ground then
+        Santa.RemoveSantaEntity()
         height = 0
+        santaGroup.santaEntity = santaGroup.surface.create_entity {name = "biter_santa_flying", position = creationPos, direction = defines.direction.east, force = "neutral"}
+        santaGroup.santaEntity.destructible = false
+    elseif santaGroup.state == SantaStates.taking_off_air or santaGroup.state == SantaStates.vto_up then
+        Santa.RemoveSantaEntity()
+        santaGroup.santaSpriteId = rendering.draw_sprite {sprite = "biter_santa_flying", render_layer = "object", target = creationPos, surface = santaGroup.surface}
     else
         return
     end
-    Santa.RemoveSantaEntity()
-    santaGroup.santaEntity = santaGroup.surface.create_entity {name = entityName, position = creationPos, direction = defines.direction.east, force = "neutral"}
-    if santaGroup.state == SantaStates.landed then
-        Santa.AddContentsToSanta()
-    end
-    santaGroup.santaEntity.destructible = false
-    Santa.CreateSantaEntityShadow(height)
+    Santa.CreateSantaEntityShadowSprite(height)
 end
 
 Santa.AddContentsToSanta = function()
@@ -171,10 +186,9 @@ Santa.AddContentsToSanta = function()
     end
 end
 
-Santa.CreateSantaEntityShadow = function(height)
+Santa.CreateSantaEntityShadowSprite = function(height)
     local santaGroup = global.SantaGroup
-    santaGroup.santaEntityShadow = santaGroup.surface.create_entity {name = "biter-santa-shadow", position = Santa.CalculateShadowSantaPosition(height), direction = defines.direction.east, force = "neutral"}
-    santaGroup.santaEntityShadow.destructible = false
+    santaGroup.santaShadowSpriteId = rendering.draw_sprite {sprite = "biter_santa_shadow", render_layer = "air-object", target = Santa.CalculateShadowSantaPosition(height), surface = santaGroup.surface}
 end
 
 Santa.CalculateShadowSantaPosition = function(height)
@@ -191,9 +205,15 @@ Santa.RemoveSantaEntity = function()
     local santaGroup = global.SantaGroup
     if santaGroup.santaEntity ~= nil and santaGroup.santaEntity.valid then
         santaGroup.santaEntity.destroy()
+        santaGroup.santaEntity = nil
     end
-    if santaGroup.santaEntityShadow ~= nil and santaGroup.santaEntityShadow.valid then
-        santaGroup.santaEntityShadow.destroy()
+    if santaGroup.santaSpriteId ~= nil and rendering.is_valid(santaGroup.santaSpriteId) then
+        rendering.destroy(santaGroup.santaSpriteId)
+        santaGroup.santaSpriteId = nil
+    end
+    if santaGroup.santaShadowSpriteId ~= nil and rendering.is_valid(santaGroup.santaShadowSpriteId) then
+        rendering.destroy(santaGroup.santaShadowSpriteId)
+        santaGroup.santaShadowSpriteId = nil
     end
 end
 
@@ -290,9 +310,10 @@ end
 
 Santa.IsSantaEntityValid = function()
     local santaGroup = global.SantaGroup
-    if santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid then
+    if (santaGroup.santaEntity == nil or not santaGroup.santaEntity.valid) and (santaGroup.santaSpriteId == nil or not rendering.is_valid(santaGroup.santaSpriteId)) then
         return false
-    elseif santaGroup.santaEntityShadow == nil or not santaGroup.santaEntityShadow.valid then
+    end
+    if santaGroup.santaShadowSpriteId == nil or not rendering.is_valid(santaGroup.santaShadowSpriteId) then
         return false
     end
     return true
@@ -300,77 +321,80 @@ end
 
 Santa.NotValidEntityOccured = function()
     game.print("Critical Error - Santa Entity Invalid")
-    Santa.DeleteSantaCommand()
+    Santa.DeleteSanta()
 end
 
 Santa.CreateWheelSparks = function(santaEntityPosition)
     local santaGroup = global.SantaGroup
-    local wheelGroundSpots = {
-        {
-            x = santaEntityPosition.x - 0.9,
-            y = santaEntityPosition.y + 0.9
-        },
-        {
-            x = santaEntityPosition.x - 2,
-            y = santaEntityPosition.y + 0.9
-        },
-        {
-            x = santaEntityPosition.x - 5,
-            y = santaEntityPosition.y + 0.9
-        },
-        {
-            x = santaEntityPosition.x - 6.1,
-            y = santaEntityPosition.y + 0.9
-        }
+    local bottomWheelRowYPos = santaEntityPosition.y + 0.9
+    local wheelSparkSpotsXPos = {
+        santaEntityPosition.x - 2.5,
+        santaEntityPosition.x - 3.5,
+        santaEntityPosition.x - 6.5,
+        santaEntityPosition.x - 7.5
     }
-    for k, pos in pairs(wheelGroundSpots) do
-        santaGroup.surface.create_trivial_smoke {name = "santa-wheel-sparks", position = pos}
+    for _, xPos in pairs(wheelSparkSpotsXPos) do
+        santaGroup.surface.create_trivial_smoke {name = "santa_wheel_sparks", position = {x = xPos, y = bottomWheelRowYPos}}
     end
 end
 
 Santa.CreateFlyingBiterSmoke = function(santaEntityPosition)
     local santaGroup = global.SantaGroup
-    local topBiterRowYPos = santaEntityPosition.y + 0.2
-    local bottomBiterRowYPos = santaEntityPosition.y + 0.9
-    local biterSmokeSpotsXPos = {
-        santaEntityPosition.x + 6.5,
-        santaEntityPosition.x + 5.7,
-        santaEntityPosition.x + 4.7,
-        santaEntityPosition.x + 3.9,
-        santaEntityPosition.x + 3,
-        santaEntityPosition.x + 2.2,
-        santaEntityPosition.x + 1.1,
-        santaEntityPosition.x + 0.3
+    local biterRowsYPos = {
+        santaEntityPosition.y - 1,
+        santaEntityPosition.y,
+        santaEntityPosition.y + 0.5,
+        santaEntityPosition.y + 1.2
     }
-    for k, xPos in pairs(biterSmokeSpotsXPos) do
-        santaGroup.surface.create_trivial_smoke {name = "santa-biter-air-smoke", position = {x = xPos, y = topBiterRowYPos}}
-        santaGroup.surface.create_trivial_smoke {name = "santa-biter-air-smoke", position = {x = xPos, y = bottomBiterRowYPos}}
+    local biterSmokeSpotsXPos = {
+        santaEntityPosition.x + 8,
+        santaEntityPosition.x + 7,
+        santaEntityPosition.x + 6,
+        santaEntityPosition.x + 5,
+        santaEntityPosition.x + 4,
+        santaEntityPosition.x + 3,
+        santaEntityPosition.x + 2,
+        santaEntityPosition.x + 1,
+        santaEntityPosition.x,
+        santaEntityPosition.x - 1
+    }
+    for _, yPos in pairs(biterRowsYPos) do
+        for _, xPos in pairs(biterSmokeSpotsXPos) do
+            santaGroup.surface.create_trivial_smoke {name = "santa_biter_air_smoke", position = {x = xPos, y = yPos}}
+        end
     end
 
-    local topWheelRowYPos = santaEntityPosition.y + 0
-    local bottomWheelRowYPos = santaEntityPosition.y + 1.1
+    local topWheelRowYPos = santaEntityPosition.y - 0.5
+    local bottomWheelRowYPos = santaEntityPosition.y + 0.9
     local wheelSmokeSpotsXPos = {
-        santaEntityPosition.x - 0.9,
-        santaEntityPosition.x - 2,
-        santaEntityPosition.x - 5,
-        santaEntityPosition.x - 6.1
+        santaEntityPosition.x - 2.5,
+        santaEntityPosition.x - 3.5,
+        santaEntityPosition.x - 6.5,
+        santaEntityPosition.x - 7.5
     }
     for k, xPos in pairs(wheelSmokeSpotsXPos) do
-        santaGroup.surface.create_trivial_smoke {name = "santa-biter-air-smoke", position = {x = xPos, y = topWheelRowYPos}}
-        santaGroup.surface.create_trivial_smoke {name = "santa-biter-air-smoke", position = {x = xPos, y = bottomWheelRowYPos}}
+        santaGroup.surface.create_trivial_smoke {name = "santa_biter_air_smoke", position = {x = xPos, y = topWheelRowYPos}}
+        santaGroup.surface.create_trivial_smoke {name = "santa_biter_air_smoke", position = {x = xPos, y = bottomWheelRowYPos}}
     end
 end
 
-Santa.MoveSantaEntity = function(santaEntityPos, height)
+Santa.MoveSantaEntity = function(santaEntityPos, height, noSmoke)
     local santaGroup = global.SantaGroup
     if height == nil then
         height = 0
     end
-    santaGroup.santaEntity.teleport(santaEntityPos)
-    if height > 0 then
+    if santaGroup.santaEntity ~= nil and santaGroup.santaEntity.valid then
+        santaGroup.santaEntity.teleport(santaEntityPos)
+    elseif santaGroup.santaSpriteId ~= nil and rendering.is_valid(santaGroup.santaSpriteId) then
+        rendering.set_target(santaGroup.santaSpriteId, santaEntityPos)
+    end
+    if not noSmoke and height > 0 and santaGroup.speed >= santaGroup.smokeMinSpeed then
         Santa.CreateFlyingBiterSmoke(santaEntityPos)
     end
-    santaGroup.santaEntityShadow.teleport(Santa.CalculateShadowSantaPosition(height))
+    rendering.set_target(santaGroup.santaShadowSpriteId, Santa.CalculateShadowSantaPosition(height))
+    if santaGroup.vtoFlame1Entity ~= nil or santaGroup.vtoFlame1AnimationId ~= nil then
+        Santa.MoveVTOFlames(santaEntityPos)
+    end
 end
 
 Santa.TakeOff = function()
@@ -379,8 +403,9 @@ Santa.TakeOff = function()
         santaGroup.state = SantaStates.taking_off_ground
         santaGroup.stateIteration = #santaGroup.groundSlowdownPattern
     elseif santaGroup.takeoffMode == "vto" then
-        santaGroup.state = SantaStates.vto_up
+        santaGroup.state = SantaStates.vto_up_near_ground
         santaGroup.stateIteration = 1
+        Santa.CreateVTOFlameEntities(santaGroup.landedPos)
     end
     Santa.SpawnSantaEntity(santaGroup.landedPos)
 end
@@ -435,18 +460,59 @@ Santa.CalculateVTOTakeoffDistance = function(vtoClimbPattern)
     return vtoTakeoffDistance
 end
 
-Santa.CreateVTOFlames = function(santaEntityPosition)
+Santa.CreateVTOFlameEntities = function(santaEntityPosition)
+    local santaGroup = global.SantaGroup
+    santaGroup.vtoFlame1Entity = santaGroup.surface.create_entity {name = "santa_biter_vto_flame", position = santaEntityPosition, force = "neutral"}
+    santaGroup.vtoFlame1Entity.destructible = false
+    santaGroup.vtoFlame2Entity = santaGroup.surface.create_entity {name = "santa_biter_vto_flame", position = santaEntityPosition, force = "neutral"}
+    santaGroup.vtoFlame2Entity.destructible = false
+    Santa.MoveVTOFlames(santaEntityPosition)
+end
+
+Santa.MoveVTOFlames = function(santaEntityPosition)
     local santaGroup = global.SantaGroup
     local flamePos1 = {
-        x = santaEntityPosition.x - 1.5,
+        x = santaEntityPosition.x - 2.9,
         y = santaEntityPosition.y + 2.1
     }
-    santaGroup.surface.create_trivial_smoke {name = "santa-biter-vto-flame", position = flamePos1}
     local flamePos2 = {
-        x = santaEntityPosition.x - 5.6,
+        x = santaEntityPosition.x - 7.1,
         y = santaEntityPosition.y + 2.1
     }
-    santaGroup.surface.create_trivial_smoke {name = "santa-biter-vto-flame", position = flamePos2}
+    if santaGroup.vtoFlame1Entity ~= nil then
+        santaGroup.vtoFlame1Entity.teleport(flamePos1)
+        santaGroup.vtoFlame2Entity.teleport(flamePos2)
+    elseif santaGroup.vtoFlame1AnimationId ~= nil then
+        rendering.set_target(santaGroup.vtoFlame1AnimationId, flamePos1)
+        rendering.set_target(santaGroup.vtoFlame2AnimationId, flamePos2)
+    end
+end
+
+Santa.ReplaceVTOFlames = function()
+    local santaGroup = global.SantaGroup
+    santaGroup.vtoFlame1AnimationId = rendering.draw_animation {animation = "santa_biter_vto_flame", render_layer = "air-object", target = santaGroup.vtoFlame1Entity.position, surface = santaGroup.surface}
+    santaGroup.vtoFlame2AnimationId = rendering.draw_animation {animation = "santa_biter_vto_flame", render_layer = "air-object", target = santaGroup.vtoFlame2Entity.position, surface = santaGroup.surface}
+    Santa.DestroyVTOFlames()
+end
+
+Santa.DestroyVTOFlames = function()
+    local santaGroup = global.SantaGroup
+    if santaGroup.vtoFlame1Entity ~= nil then
+        santaGroup.vtoFlame1Entity.destroy()
+        santaGroup.vtoFlame1Entity = nil
+        santaGroup.vtoFlame2Entity.destroy()
+        santaGroup.vtoFlame2Entity = nil
+    end
+end
+
+Santa.DestroyVTOFlameAnimations = function()
+    local santaGroup = global.SantaGroup
+    if santaGroup.vtoFlame1AnimationId ~= nil then
+        rendering.destroy(santaGroup.vtoFlame1AnimationId)
+        santaGroup.vtoFlame1AnimationId = nil
+        rendering.destroy(santaGroup.vtoFlame2AnimationId)
+        santaGroup.vtoFlame2AnimationId = nil
+    end
 end
 
 Santa.GeneratePhaseInOutSmokeTickIteration = function(santaGroupPosition)
@@ -466,7 +532,7 @@ end
 
 Santa.CreatePhaseInOutSmoke = function(santaEntityPosition)
     local santaGroup = global.SantaGroup
-    santaGroup.surface.create_trivial_smoke {name = "santa-biter-transition-smoke-massive", position = {x = santaEntityPosition.x, y = santaEntityPosition.y}}
+    santaGroup.surface.create_trivial_smoke {name = "santa_biter_transition_smoke_massive", position = {x = santaEntityPosition.x, y = santaEntityPosition.y}}
 end
 
 return Santa
