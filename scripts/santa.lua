@@ -34,6 +34,7 @@ Santa.CreateSantaGroup = function()
     local flyingHeightTiles = 10
     local groundDamageHeight = 3
     local groundEntitySpriteHeight = 2
+    local smokeMinSpeed = 0.35
     local phaseInOutDistance = math.floor(20 / tickMoveSpeed) * tickMoveSpeed
     local landedPos = {
         x = tonumber(settings.global["santa-landed-spot-x"].value),
@@ -115,7 +116,9 @@ Santa.CreateSantaGroup = function()
         takeoffMode = takeoffMode,
         vtoUpPattern = vtoUpPattern,
         vtoClimbPattern = vtoClimbPattern,
-        phaseOutSmokeTriggerXPos = phaseOutSmokeTriggerXPos
+        phaseOutSmokeTriggerXPos = phaseOutSmokeTriggerXPos,
+        smokeMinSpeed = smokeMinSpeed,
+        speed = 0
     }
     if debug then
         Logging.LogPrint("Santa Created")
@@ -323,55 +326,51 @@ end
 
 Santa.CreateWheelSparks = function(santaEntityPosition)
     local santaGroup = global.SantaGroup
-    local wheelGroundSpots = {
-        {
-            x = santaEntityPosition.x - 0.9,
-            y = santaEntityPosition.y + 0.9
-        },
-        {
-            x = santaEntityPosition.x - 2,
-            y = santaEntityPosition.y + 0.9
-        },
-        {
-            x = santaEntityPosition.x - 5,
-            y = santaEntityPosition.y + 0.9
-        },
-        {
-            x = santaEntityPosition.x - 6.1,
-            y = santaEntityPosition.y + 0.9
-        }
+    local bottomWheelRowYPos = santaEntityPosition.y + 0.9
+    local wheelSparkSpotsXPos = {
+        santaEntityPosition.x - 2.5,
+        santaEntityPosition.x - 3.5,
+        santaEntityPosition.x - 6.5,
+        santaEntityPosition.x - 7.5
     }
-    for k, pos in pairs(wheelGroundSpots) do
-        santaGroup.surface.create_trivial_smoke {name = "santa_wheel_sparks", position = pos}
+    for _, xPos in pairs(wheelSparkSpotsXPos) do
+        santaGroup.surface.create_trivial_smoke {name = "santa_wheel_sparks", position = {x = xPos, y = bottomWheelRowYPos}}
     end
 end
 
 Santa.CreateFlyingBiterSmoke = function(santaEntityPosition)
     local santaGroup = global.SantaGroup
-    local topBiterRowYPos = santaEntityPosition.y + 0.2
-    local bottomBiterRowYPos = santaEntityPosition.y + 0.9
-    local biterSmokeSpotsXPos = {
-        santaEntityPosition.x + 6.5,
-        santaEntityPosition.x + 5.7,
-        santaEntityPosition.x + 4.7,
-        santaEntityPosition.x + 3.9,
-        santaEntityPosition.x + 3,
-        santaEntityPosition.x + 2.2,
-        santaEntityPosition.x + 1.1,
-        santaEntityPosition.x + 0.3
+    local biterRowsYPos = {
+        santaEntityPosition.y - 1,
+        santaEntityPosition.y,
+        santaEntityPosition.y + 0.5,
+        santaEntityPosition.y + 1.2
     }
-    for k, xPos in pairs(biterSmokeSpotsXPos) do
-        santaGroup.surface.create_trivial_smoke {name = "santa_biter_air_smoke", position = {x = xPos, y = topBiterRowYPos}}
-        santaGroup.surface.create_trivial_smoke {name = "santa_biter_air_smoke", position = {x = xPos, y = bottomBiterRowYPos}}
+    local biterSmokeSpotsXPos = {
+        santaEntityPosition.x + 8,
+        santaEntityPosition.x + 7,
+        santaEntityPosition.x + 6,
+        santaEntityPosition.x + 5,
+        santaEntityPosition.x + 4,
+        santaEntityPosition.x + 3,
+        santaEntityPosition.x + 2,
+        santaEntityPosition.x + 1,
+        santaEntityPosition.x,
+        santaEntityPosition.x - 1
+    }
+    for _, yPos in pairs(biterRowsYPos) do
+        for _, xPos in pairs(biterSmokeSpotsXPos) do
+            santaGroup.surface.create_trivial_smoke {name = "santa_biter_air_smoke", position = {x = xPos, y = yPos}}
+        end
     end
 
-    local topWheelRowYPos = santaEntityPosition.y + 0
-    local bottomWheelRowYPos = santaEntityPosition.y + 1.1
+    local topWheelRowYPos = santaEntityPosition.y - 0.5
+    local bottomWheelRowYPos = santaEntityPosition.y + 0.9
     local wheelSmokeSpotsXPos = {
-        santaEntityPosition.x - 0.9,
-        santaEntityPosition.x - 2,
-        santaEntityPosition.x - 5,
-        santaEntityPosition.x - 6.1
+        santaEntityPosition.x - 2.5,
+        santaEntityPosition.x - 3.5,
+        santaEntityPosition.x - 6.5,
+        santaEntityPosition.x - 7.5
     }
     for k, xPos in pairs(wheelSmokeSpotsXPos) do
         santaGroup.surface.create_trivial_smoke {name = "santa_biter_air_smoke", position = {x = xPos, y = topWheelRowYPos}}
@@ -389,7 +388,8 @@ Santa.MoveSantaEntity = function(santaEntityPos, height, noSmoke)
     elseif santaGroup.santaSpriteId ~= nil and rendering.is_valid(santaGroup.santaSpriteId) then
         rendering.set_target(santaGroup.santaSpriteId, santaEntityPos)
     end
-    if height > 0 and not noSmoke then
+    game.print(santaGroup.speed)
+    if not noSmoke and height > 0 and santaGroup.speed >= santaGroup.smokeMinSpeed then
         Santa.CreateFlyingBiterSmoke(santaEntityPos)
     end
     rendering.set_target(santaGroup.santaShadowSpriteId, Santa.CalculateShadowSantaPosition(height))
@@ -473,11 +473,11 @@ end
 Santa.MoveVTOFlames = function(santaEntityPosition)
     local santaGroup = global.SantaGroup
     local flamePos1 = {
-        x = santaEntityPosition.x - 1.5,
+        x = santaEntityPosition.x - 2.9,
         y = santaEntityPosition.y + 2.1
     }
     local flamePos2 = {
-        x = santaEntityPosition.x - 5.6,
+        x = santaEntityPosition.x - 7.1,
         y = santaEntityPosition.y + 2.1
     }
     if santaGroup.vtoFlame1Entity ~= nil then

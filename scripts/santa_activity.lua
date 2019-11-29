@@ -74,10 +74,10 @@ SantaActivity.Arriving = function()
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
     end
-    local speed = santaGroup.tickMoveSpeed
+    santaGroup.speed = santaGroup.tickMoveSpeed
     local height = santaGroup.flyingHeightTiles
     santaGroup.currentPos = {
-        x = santaGroup.currentPos.x + speed,
+        x = santaGroup.currentPos.x + santaGroup.speed,
         y = santaGroup.currentPos.y
     }
     local santaEntityPos = {
@@ -97,13 +97,13 @@ SantaActivity.LandingAir = function()
         return Santa.NotValidEntityOccured()
     end
     local distanceToStopped = santaGroup.landedPos.x - santaGroup.currentPos.x
-    local speed = santaGroup.descentPattern[santaGroup.stateIteration].speed
+    santaGroup.speed = santaGroup.descentPattern[santaGroup.stateIteration].speed
     local height = santaGroup.descentPattern[santaGroup.stateIteration].height
     santaGroup.stateIteration = santaGroup.stateIteration + 1
 
-    Logging.Log("distanceToStopped: " .. distanceToStopped .. " - height: " .. height .. " - speed: " .. speed, debug)
+    Logging.Log("distanceToStopped: " .. distanceToStopped .. " - height: " .. height .. " - speed: " .. santaGroup.speed, debug)
     santaGroup.currentPos = {
-        x = santaGroup.currentPos.x + speed,
+        x = santaGroup.currentPos.x + santaGroup.speed,
         y = santaGroup.currentPos.y
     }
     local santaEntityPos = {
@@ -130,17 +130,17 @@ SantaActivity.LandingGround = function()
         return Santa.NotValidEntityOccured()
     end
     local distanceToStopped = santaGroup.landedPos.x - santaGroup.currentPos.x
-    local speed = santaGroup.groundSlowdownPattern[santaGroup.stateIteration]
+    santaGroup.speed = santaGroup.groundSlowdownPattern[santaGroup.stateIteration]
     santaGroup.stateIteration = santaGroup.stateIteration + 1
-    Logging.Log("distanceToStopped: " .. distanceToStopped .. " - speed: " .. speed, debug)
+    Logging.Log("distanceToStopped: " .. distanceToStopped .. " - speed: " .. santaGroup.speed, debug)
     santaGroup.currentPos = {
-        x = santaGroup.currentPos.x + speed,
+        x = santaGroup.currentPos.x + santaGroup.speed,
         y = santaGroup.currentPos.y
     }
     local santaEntityPos = santaGroup.currentPos
-    Santa.MoveSantaEntity(santaEntityPos)
+    Santa.MoveSantaEntity(santaEntityPos, 0)
     Utils.KillAllKillableObjectsInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity, true)
-    if speed > 0.05 then
+    if santaGroup.speed > 0.05 then
         Santa.CreateWheelSparks(santaEntityPos)
     end
     if santaGroup.stateIteration > #santaGroup.groundSlowdownPattern then
@@ -174,7 +174,7 @@ SantaActivity.VTOUp = function()
         x = santaGroup.currentPos.x,
         y = santaGroup.currentPos.y - height
     }
-    Santa.MoveSantaEntity(santaEntityPos, height, true)
+    Santa.MoveSantaEntity(santaEntityPos, height)
     if santaGroup.state == SantaStates.vto_up_near_ground and height >= santaGroup.groundEntitySpriteHeight then
         santaGroup.state = SantaStates.vto_up
         Santa.SpawnSantaEntity(santaEntityPos, height)
@@ -195,26 +195,23 @@ SantaActivity.VTOClimb = function()
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
     end
-    local speed = santaGroup.vtoClimbPattern[santaGroup.stateIteration].speed
+    santaGroup.speed = santaGroup.vtoClimbPattern[santaGroup.stateIteration].speed
     local height = santaGroup.vtoClimbPattern[santaGroup.stateIteration].height
     santaGroup.stateIteration = santaGroup.stateIteration + 1
 
-    Logging.Log("height: " .. height .. " - speed: " .. speed, debug)
+    Logging.Log("height: " .. height .. " - speed: " .. santaGroup.speed, debug)
     santaGroup.currentPos = {
-        x = santaGroup.currentPos.x + speed,
+        x = santaGroup.currentPos.x + santaGroup.speed,
         y = santaGroup.currentPos.y
     }
     local santaEntityPos = {
         x = santaGroup.currentPos.x,
         y = santaGroup.currentPos.y - height
     }
-    local noSmoke = false
-    if height < (santaGroup.flyingHeightTiles * 0.75) then
-        noSmoke = true
-    else
+    if height >= (santaGroup.flyingHeightTiles * 0.75) then
         Santa.DestroyVTOFlameAnimations()
     end
-    Santa.MoveSantaEntity(santaEntityPos, height, noSmoke)
+    Santa.MoveSantaEntity(santaEntityPos, height)
     if santaGroup.stateIteration > #santaGroup.vtoClimbPattern then
         santaGroup.state = SantaStates.departing
         santaGroup.stateIteration = 1
@@ -226,15 +223,15 @@ SantaActivity.TakingOffGround = function()
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
     end
-    local speed = santaGroup.groundSlowdownPattern[santaGroup.stateIteration]
+    santaGroup.speed = santaGroup.groundSlowdownPattern[santaGroup.stateIteration]
     santaGroup.stateIteration = santaGroup.stateIteration - 1
-    Logging.Log("speed: " .. speed, debug)
+    Logging.Log("speed: " .. santaGroup.speed, debug)
     santaGroup.currentPos = {
-        x = santaGroup.currentPos.x + speed,
+        x = santaGroup.currentPos.x + santaGroup.speed,
         y = santaGroup.currentPos.y
     }
     local santaEntityPos = santaGroup.currentPos
-    Santa.MoveSantaEntity(santaEntityPos)
+    Santa.MoveSantaEntity(santaEntityPos, 0)
     Utils.KillAllKillableObjectsInArea(santaGroup.surface, Utils.ApplyBoundingBoxToPosition(santaGroup.currentPos, santaGroup.collisionBox), santaGroup.santaEntity, true)
     if santaGroup.stateIteration == 0 then
         santaGroup.state = SantaStates.taking_off_air_near_ground
@@ -247,12 +244,12 @@ SantaActivity.TakingOffAir = function()
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
     end
-    local speed = santaGroup.descentPattern[santaGroup.stateIteration].speed
+    santaGroup.speed = santaGroup.descentPattern[santaGroup.stateIteration].speed
     local height = santaGroup.descentPattern[santaGroup.stateIteration].height
     santaGroup.stateIteration = santaGroup.stateIteration - 1
-    Logging.Log("height: " .. height .. " - speed: " .. speed, debug)
+    Logging.Log("height: " .. height .. " - speed: " .. santaGroup.speed, debug)
     santaGroup.currentPos = {
-        x = santaGroup.currentPos.x + speed,
+        x = santaGroup.currentPos.x + santaGroup.speed,
         y = santaGroup.currentPos.y
     }
     local santaEntityPos = {
@@ -281,10 +278,10 @@ SantaActivity.Departing = function()
     if not Santa.IsSantaEntityValid() then
         return Santa.NotValidEntityOccured()
     end
-    local speed = santaGroup.tickMoveSpeed
+    santaGroup.speed = santaGroup.tickMoveSpeed
     local height = santaGroup.flyingHeightTiles
     santaGroup.currentPos = {
-        x = santaGroup.currentPos.x + speed,
+        x = santaGroup.currentPos.x + santaGroup.speed,
         y = santaGroup.currentPos.y
     }
     local santaEntityPos = {

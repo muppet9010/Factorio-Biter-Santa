@@ -1,11 +1,12 @@
 ---------------------------------------------------------------------------------------------------
 Version: 17.1.3
-Date: 2019-11-28
+Date: 2019-11-29
   Features:
+    - Biter Santa graphics re-done using current HD game graphics.
   Changes:
   Bugfixes:
-    - Santa should be drawn infront of and behind things when landing correctly now.
-    - Vertical Take Off flame is back
+    - Santa should be drawn infront of and behind things when landing much better now.
+    - Vertical Take Off flame is fixed to run again
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 17.1.2

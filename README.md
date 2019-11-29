@@ -42,6 +42,5 @@ Maps using version 17.1.2 or below must fully dismiss Santa before upgrading. Ve
 Notes
 -----
 
-- Some of the graphics and effects are a bit rough, this is my first exploration in this. Future may include animated biters.
 - Best used during the day as no lights are included on santa. This is as I can't make lights on santa affect only it and not the buildings behind it due to Factorios 2D view of height.
 - All mod settings are cached for santa when called in to avoid weird situations. So set everything up first.
