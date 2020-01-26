@@ -1,13 +1,13 @@
 {
     "name": "Biter_Santa",
-    "version": "17.1.3",
+    "version": "18.1.4",
     "title": "Biter Santa",
     "author": "Muppet9010",
     "contact": "",
     "homepage": "https://mods.factorio.com/mod/Biter_Santa",
-    "factorio_version": "0.17",
+    "factorio_version": "0.18",
     "dependencies": [
-        "base >= 0.17.78"
+        "base >= 0.18"
     ],
     "description": "Adds a flying Biter Santa which can be called in to land and depart by command"
 }
