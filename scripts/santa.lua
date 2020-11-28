@@ -11,9 +11,9 @@ Santa.CreateGlobals = function()
 end
 
 Santa.OnLoad = function()
-    Commands.Register("call-santa", {"api-description.call-santa"}, Santa.CallSantaCommand, true)
-    Commands.Register("dismiss-santa", {"api-description.dismiss-santa"}, Santa.DismissSantaCommand, true)
-    Commands.Register("delete-santa", {"api-description.delete-santa"}, Santa.DeleteSantaCommand, true)
+    Commands.Register("call-santa", {"api-description.biter_santa-call_santa"}, Santa.CallSantaCommand, true)
+    Commands.Register("dismiss-santa", {"api-description.biter_santa-dismiss_santa"}, Santa.DismissSantaCommand, true)
+    Commands.Register("delete-santa", {"api-description.biter_santa-delete_santa"}, Santa.DeleteSantaCommand, true)
     Commands.Register("set-santa-landing-position", {"api-description.biter_santa-set_santa_landing_position"}, Santa.SetLandingPosition, true)
     Commands.Register("offset-santa-landing-position", {"api-description.biter_santa-offset_santa_landing_position"}, Santa.OffsetLandingPosition, true)
 end
