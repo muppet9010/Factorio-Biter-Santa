@@ -8,7 +8,8 @@ local Events = require("utility/events")
 local debug = false
 
 function SantaActivity.OnLoad()
-    Events.RegisterHandler(defines.events.on_tick, "SantaActivity", SantaActivity.OnTick)
+    -- This doesn't use EventScheduler as very legacy logic throughout.
+    Events.RegisterHandlerEvent(defines.events.on_tick, "SantaActivity", SantaActivity.OnTick)
 end
 
 SantaActivity.OnTick = function()

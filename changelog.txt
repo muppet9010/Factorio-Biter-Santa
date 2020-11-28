@@ -1,8 +1,17 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.1.5
+Date: 2020-11-28
+  Features:
+    - updated to Factorio 1.1 as-is.
+    - add commands to set and apply an offset tos santa's landing position.
+  Changes:
+  Bugfixes:
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 18.1.4
 Date: 2020-01-26
   Features:
-    - updated to Factori 0.18 as-is
+    - updated to Factorio 0.18 as-is.
   Changes:
   Bugfixes:
   Info:

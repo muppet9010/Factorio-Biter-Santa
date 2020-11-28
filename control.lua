@@ -1,6 +1,9 @@
 local Santa = require("scripts/santa")
 local SantaActivity = require("scripts/santa_activity")
-local Events = require("utility/events")
+
+local function CreateGlobals()
+    Santa.CreateGlobals()
+end
 
 local OnLoad = function()
     Santa.OnLoad()
@@ -8,10 +11,10 @@ local OnLoad = function()
 end
 
 local OnStartup = function()
+    CreateGlobals()
     OnLoad()
 end
 
 script.on_init(OnStartup)
 script.on_load(OnLoad)
 script.on_configuration_changed(OnStartup)
-Events.RegisterEvent(defines.events.on_tick)

@@ -5,14 +5,17 @@ local Utils = require("utility/utils")
 local Commands = require("utility/commands")
 local debug = false
 
-Santa.OnLoad = function()
-    Santa.RegisterCommands()
+Santa.CreateGlobals = function()
+    global.santa = global.santa or {}
+    global.santa.landingPos = global.santa.landingPos or nil
 end
 
-Santa.RegisterCommands = function()
-    Commands.Register("call-santa", {"api-description.call-santa"}, Santa.CallSantaCommand, true)
-    Commands.Register("dismiss-santa", {"api-description.dismiss-santa"}, Santa.DismissSantaCommand, true)
-    Commands.Register("delete-santa", {"api-description.delete-santa"}, Santa.DeleteSantaCommand, true)
+Santa.OnLoad = function()
+    Commands.Register("call-santa", {"api-description.biter_santa-call_santa"}, Santa.CallSantaCommand, true)
+    Commands.Register("dismiss-santa", {"api-description.biter_santa-dismiss_santa"}, Santa.DismissSantaCommand, true)
+    Commands.Register("delete-santa", {"api-description.biter_santa-delete_santa"}, Santa.DeleteSantaCommand, true)
+    Commands.Register("set-santa-landing-position", {"api-description.biter_santa-set_santa_landing_position"}, Santa.SetLandingPosition, true)
+    Commands.Register("offset-santa-landing-position", {"api-description.biter_santa-offset_santa_landing_position"}, Santa.OffsetLandingPosition, true)
 end
 
 Santa.CallSantaCommand = function(commandDetails)
@@ -36,10 +39,12 @@ Santa.CreateSantaGroup = function()
     local groundEntitySpriteHeight = 2
     local smokeMinSpeed = 0.35
     local phaseInOutDistance = math.floor(20 / tickMoveSpeed) * tickMoveSpeed
-    local landedPos = {
-        x = tonumber(settings.global["santa-landed-spot-x"].value),
-        y = tonumber(settings.global["santa-landed-spot-y"].value)
-    }
+    local landedPos =
+        global.santa.landingPos or
+        {
+            x = tonumber(settings.global["santa-landed-spot-x"].value),
+            y = tonumber(settings.global["santa-landed-spot-y"].value)
+        }
 
     local groundSlowdownStartingSpeed = tickMoveSpeed - (tickMoveSpeed * descendSpeedReducton)
     local descentPattern = Santa.CalculateDescentPattern(tickMoveSpeed, groundSlowdownStartingSpeed, altitudeChangeDistanceTiles, flyingHeightTiles)
@@ -533,6 +538,50 @@ end
 Santa.CreatePhaseInOutSmoke = function(santaEntityPosition)
     local santaGroup = global.SantaGroup
     santaGroup.surface.create_trivial_smoke {name = "santa_biter_transition_smoke_massive", position = {x = santaEntityPosition.x, y = santaEntityPosition.y}}
+end
+
+Santa.SetLandingPosition = function(commandDetails)
+    local args = Commands.GetArgumentsFromCommand(commandDetails.parameter)
+    if #args == 0 then
+        global.santa.landingPos = nil
+    elseif #args == 2 then
+        local x, y = tonumber(args[1]), tonumber(args[2])
+        if x == nil then
+            game.print({"message.biter_santa-set_santa_landing_position_arg_not_number", "1st (x)", args[1]})
+            return
+        end
+        if y == nil then
+            game.print({"message.biter_santa-set_santa_landing_position_arg_not_number", "second (y)", args[2]})
+            return
+        end
+        global.santa.landingPos = {x = x, y = y}
+    else
+        game.print({"message.biter_santa-set_santa_landing_position_wrong_arg_count", #args})
+    end
+end
+
+Santa.OffsetLandingPosition = function(commandDetails)
+    local args = Commands.GetArgumentsFromCommand(commandDetails.parameter)
+    if #args == 2 then
+        local x, y = tonumber(args[1]), tonumber(args[2])
+        if x == nil then
+            game.print({"message.biter_santa-offset_santa_landing_position_arg_not_number", "1st (x)", args[1]})
+            return
+        end
+        if y == nil then
+            game.print({"message.biter_santa-offset_santa_landing_position_arg_not_number", "second (y)", args[2]})
+            return
+        end
+        local currentPos =
+            global.santa.landingPos or
+            {
+                x = tonumber(settings.global["santa-landed-spot-x"].value),
+                y = tonumber(settings.global["santa-landed-spot-y"].value)
+            }
+        global.santa.landingPos = Utils.ApplyOffsetToPosition(currentPos, {x = x, y = y})
+    else
+        game.print({"message.biter_santa-offset_santa_landing_position_wrong_arg_count", #args})
+    end
 end
 
 return Santa
