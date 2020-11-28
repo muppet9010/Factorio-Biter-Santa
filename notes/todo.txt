@@ -1,0 +1,2 @@
+- Add command to set landing position. If passed as blank return to mod setting.
+- Add command to apply an offset (x,y) to the current held landing position.
