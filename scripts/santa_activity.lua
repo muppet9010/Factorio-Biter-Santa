@@ -9,7 +9,7 @@ local debug = false
 
 function SantaActivity.OnLoad()
     -- This doesn't use EventScheduler as very legacy logic throughout.
-    Events.RegisterHandlerEvent(defines.events.on_tick, "SantaActivity", SantaActivity.OnTick)
+    Events.RegisterHandlerEvent(defines.events.on_tick, "SantaActivity.OnTick", SantaActivity.OnTick)
 end
 
 SantaActivity.OnTick = function()
