@@ -4,11 +4,12 @@ local SantaStates = require("scripts/santa_states")
 local Logging = require("utility/logging")
 local Constants = require("constants")
 local Utils = require("utility/utils")
+local Events = require("utility/events")
 local debug = false
 
 function SantaActivity.OnLoad()
-    -- This doesn't use any event library as very legacy logic throughout. Use nth_tick to avoid clashing with Event Scheduler used elsewhere in mod.
-    script.on_nth_tick(1, SantaActivity.OnTick)
+    -- This doesn't use EventScheduler as very legacy logic throughout.
+    Events.RegisterHandlerEvent(defines.events.on_tick, "SantaActivity", SantaActivity.OnTick)
 end
 
 SantaActivity.OnTick = function()
