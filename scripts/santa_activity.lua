@@ -7,7 +7,7 @@ local Utils = require("utility/utils")
 local debug = false
 
 function SantaActivity.OnLoad()
-    -- This doesn't use any event library as very legacy logic throughout.
+    -- This doesn't use any event library as very legacy logic throughout. Use nth_tick to avoid clashing with Event Scheduler used elsewhere in mod.
     script.on_nth_tick(1, SantaActivity.OnTick)
 end
 
