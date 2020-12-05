@@ -4,12 +4,11 @@ local SantaStates = require("scripts/santa_states")
 local Logging = require("utility/logging")
 local Constants = require("constants")
 local Utils = require("utility/utils")
-local Events = require("utility/events")
 local debug = false
 
 function SantaActivity.OnLoad()
-    -- This doesn't use EventScheduler as very legacy logic throughout.
-    Events.RegisterHandlerEvent(defines.events.on_tick, "SantaActivity", SantaActivity.OnTick)
+    -- This doesn't use any event library as very legacy logic throughout.
+    script.on_nth_tick(1, SantaActivity.OnTick)
 end
 
 SantaActivity.OnTick = function()
@@ -54,6 +53,9 @@ SantaActivity.PreSpawning = function()
         santaGroup.nextStateTick = nil
         santaGroup.stateIteration = 1
     end
+
+    -- Handle any scheduling now comming.
+    Santa.SantaComming()
 end
 
 SantaActivity.Spawning = function()
@@ -305,6 +307,9 @@ SantaActivity.Disappearing = function()
         return Santa.NotValidEntityOccured()
     end
     Santa.DeleteSanta()
+
+    -- Handle any scheduling post removal.
+    Santa.SantaDisappeared()
 end
 
 return SantaActivity

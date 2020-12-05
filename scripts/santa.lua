@@ -3,19 +3,25 @@ local SantaStates = require("scripts/santa_states")
 local Logging = require("utility/logging")
 local Utils = require("utility/utils")
 local Commands = require("utility/commands")
+local EventScheduler = require("utility/event-scheduler")
 local debug = false
 
 Santa.CreateGlobals = function()
     global.santa = global.santa or {}
     global.santa.landingPos = global.santa.landingPos or nil
+    global.nextScheduledSantaTick = global.nextScheduledSantaTick or nil
+    global.santaShouldReturnAfterDelay = global.santaShouldReturnAfterDelay or nil
 end
 
 Santa.OnLoad = function()
+    EventScheduler.RegisterScheduler()
     Commands.Register("call-santa", {"api-description.biter_santa-call_santa"}, Santa.CallSantaCommand, true)
     Commands.Register("dismiss-santa", {"api-description.biter_santa-dismiss_santa"}, Santa.DismissSantaCommand, true)
     Commands.Register("delete-santa", {"api-description.biter_santa-delete_santa"}, Santa.DeleteSantaCommand, true)
     Commands.Register("set-santa-landing-position", {"api-description.biter_santa-set_santa_landing_position"}, Santa.SetLandingPosition, true)
     Commands.Register("offset-santa-landing-position", {"api-description.biter_santa-offset_santa_landing_position"}, Santa.OffsetLandingPosition, true)
+    Commands.Register("reintroduce-santa", {"api-description.biter_santa-reintroduce_santa"}, Santa.ReintroduceSantaCommand, true)
+    EventScheduler.RegisterScheduledEventType("Santa.CallSantaScheduledEvent", Santa.CallSantaScheduledEvent)
 end
 
 Santa.CallSantaCommand = function(commandDetails)
@@ -582,6 +588,74 @@ Santa.OffsetLandingPosition = function(commandDetails)
     else
         game.print({"message.biter_santa-offset_santa_landing_position_wrong_arg_count", #args})
     end
+end
+
+Santa.ReintroduceSantaCommand = function(commandDetails)
+    local args = Commands.GetArgumentsFromCommand(commandDetails.parameter)
+    if #args == 0 or #args == 1 then
+        local delay = 0
+        if #args == 1 then
+            delay = tonumber(args[1])
+            if delay == nil then
+                game.print({"message.biter_santa-reintroduce_santa_arg_not_number", "1st (delay)", args[1]})
+                return
+            end
+            delay = delay * 60
+        end
+
+        if global.SantaGroup == nil then
+            -- No current santa
+            Santa.ScheduleCallSanta(delay)
+            return
+        elseif global.SantaGroup.state == SantaStates.landed then
+            -- Santa is ready to be dismissed
+            Santa.TakeOff()
+        elseif global.SantaGroup.state == SantaStates.pre_spawning or global.SantaGroup.state == SantaStates.spawning or global.SantaGroup.state == SantaStates.arriving or global.SantaGroup.state == SantaStates.landing_air or global.SantaGroup.state == SantaStates.landing_air_near_ground or global.SantaGroup.state == SantaStates.landing_ground then
+            -- Santa is in the process of landing so abort this command.
+            return
+        end
+
+        -- Record that after santa dissapears his return should be scheduled after a delay.
+        if global.santaShouldReturnAfterDelay == nil or delay < global.santaShouldReturnAfterDelay then
+            global.santaShouldReturnAfterDelay = delay
+        end
+    else
+        game.print({"message.biter_santa-reintroduce_santa_wrong_arg_count", #args})
+    end
+end
+
+Santa.ScheduleCallSanta = function(delay)
+    local scheduledTick, scheduleSanta = game.tick + delay, false
+    if global.nextScheduledSantaTick == nil then
+        scheduleSanta = true
+    elseif scheduledTick <= global.nextScheduledSantaTick then
+        EventScheduler.RemoveScheduledEvents("Santa.CallSantaScheduledEvent", nil, global.nextScheduledSantaTick)
+        scheduleSanta = true
+    end
+    if scheduleSanta then
+        global.nextScheduledSantaTick = scheduledTick
+        EventScheduler.ScheduleEvent(scheduledTick, "Santa.CallSantaScheduledEvent")
+    end
+    global.santaShouldReturnAfterDelay = nil
+end
+
+Santa.CallSantaScheduledEvent = function()
+    if global.SantaGroup ~= nil then
+        return
+    end
+    Santa.CreateSantaGroup()
+end
+
+Santa.SantaComming = function()
+    global.nextScheduledSantaTick = nil
+    global.santaShouldReturnAfterDelay = nil
+end
+
+Santa.SantaDisappeared = function()
+    if global.santaShouldReturnAfterDelay == nil then
+        return
+    end
+    Santa.ScheduleCallSanta(global.santaShouldReturnAfterDelay)
 end
 
 return Santa
