@@ -9,7 +9,7 @@ local debug = false
 
 function SantaActivity.OnLoad()
     -- This doesn't use EventScheduler as very legacy logic throughout.
-    Events.RegisterHandlerEvent(defines.events.on_tick, "SantaActivity", SantaActivity.OnTick)
+    Events.RegisterHandlerEvent(defines.events.on_tick, "SantaActivity.OnTick", SantaActivity.OnTick)
 end
 
 SantaActivity.OnTick = function()
@@ -54,6 +54,9 @@ SantaActivity.PreSpawning = function()
         santaGroup.nextStateTick = nil
         santaGroup.stateIteration = 1
     end
+
+    -- Handle any scheduling now comming.
+    Santa.SantaComming()
 end
 
 SantaActivity.Spawning = function()
@@ -305,6 +308,9 @@ SantaActivity.Disappearing = function()
         return Santa.NotValidEntityOccured()
     end
     Santa.DeleteSanta()
+
+    -- Handle any scheduling post removal.
+    Santa.SantaDisappeared()
 end
 
 return SantaActivity
